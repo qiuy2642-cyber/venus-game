@@ -1,0 +1,3633 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>愿望会被听见吗？</title>
+    <!-- 外部库：cdn-loader.js 会依次尝试 vendor 本地包 / bootcdn / jsDelivr -->
+    <script src="https://cdn.tailwindcss.com" onerror="document.documentElement.classList.add('no-tailwind')"></script>
+    <script>
+        if (typeof tailwind !== 'undefined') {
+            tailwind.config = { theme: { extend: {
+                fontFamily: { serif: ['Cinzel','Georgia','serif'], playfair: ['Playfair Display','serif'], sans: ['"Noto Serif SC"','serif'] },
+                colors: { venus: { red:'#B3243C',deep:'#540D1A',rose:'#E25C70',cream:'#FCFAF2',parchment:'#F5EFEB',gold:'#C3A25A',ink:'#2B1A1D',dark:'#140D1A',accent:'#FAF4EB' } }
+            }}};
+        }
+    </script>
+    <script src="cdn-loader.js"></script>
+
+    <!-- 恋签环节依赖 -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;700&family=Noto+Serif+SC:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="lovesign-embed.css">
+    <link rel="stylesheet" href="heartrate-embed.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Noto+Serif+SC:wght@200;300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --color-cream: #fdfdf5;
+            --color-khaki: #d2b48c;
+            --color-wood-light: #e0c9a6;
+            --color-wood-mid: #8b5a2b;
+            --color-wood-dark: #5d3a1a;
+            --color-dark: #1a1410;
+            --font-pixel: 'Courier New', Courier, monospace;
+            --vn-accent: #c4a484;
+            --mystic-glow: rgba(196, 164, 132, 0.6);
+            --love-pink-bg: #fff1f3;
+            --love-main: #e8a7b5;
+            --love-deep: #d493a1;
+            --love-heart-glow: rgba(232, 167, 181, 0.4);
+            --hermes-main: #5d3a1a;
+            --hermes-soft-glow: rgba(93, 58, 26, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="%238b5a2b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path></svg>'), auto;
+        }
+
+        body {
+            background-color: var(--color-dark);
+            font-family: var(--font-pixel);
+            overflow: hidden;
+            height: 100vh;
+            color: var(--color-wood-light);
+        }
+
+        .noise {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle at 20% 30%, rgba(196, 164, 132, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(139, 90, 43, 0.06) 0%, transparent 45%);
+            opacity: 0.15;
+            z-index: 50;
+            pointer-events: none;
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+            background: radial-gradient(circle at 50% 50%, #2c1e14 0%, #1a1410 100%);
+        }
+
+        .astrolabe {
+            position: fixed;
+            top: 50%; left: 50%;
+            width: 800px; height: 800px;
+            margin-top: -400px; margin-left: -400px;
+            border: 1px solid rgba(196, 164, 132, 0.15);
+            border-radius: 50%;
+            z-index: -1;
+            pointer-events: none;
+            animation: rotate 60s linear infinite;
+        }
+        .astrolabe::before {
+            content: "";
+            position: absolute;
+            top: 10%; left: 10%; right: 10%; bottom: 10%;
+            border: 1px dashed rgba(196, 164, 132, 0.1);
+            border-radius: 50%;
+        }
+
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .frame-border {
+            position: fixed;
+            top: 30px; left: 30px; right: 30px; bottom: 30px;
+            border: 1px solid rgba(196, 164, 132, 0.3);
+            z-index: 100;
+            pointer-events: none;
+        }
+        .frame-border::before, .frame-border::after {
+            content: "✧";
+            position: absolute;
+            color: var(--vn-accent);
+            font-size: 1.2rem;
+            opacity: 0.6;
+        }
+        .frame-border::before { top: -10px; left: -10px; }
+        .frame-border::after { bottom: -10px; right: -10px; }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+            z-index: 10;
+        }
+        .page.active { display: flex; animation: pageIn 2s cubic-bezier(0.2, 0, 0.2, 1); }
+
+        @keyframes pageIn {
+            from { opacity: 0; filter: blur(15px); transform: scale(1.05); }
+            to { opacity: 1; filter: blur(0); transform: scale(1); }
+        }
+
+        .tarot-card {
+            position: relative;
+            width: 240px;
+            height: 380px;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border: 1px solid var(--vn-accent);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5), 0 0 15px var(--mystic-glow);
+            transform: perspective(1000px) rotateY(-5deg);
+            transition: all 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .tarot-card:hover {
+            transform: perspective(1000px) rotateY(0deg) translateY(-10px);
+            box-shadow: 0 0 50px rgba(0,0,0,0.6), 0 0 25px var(--mystic-glow);
+        }
+
+        .card-placeholder {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease;
+            z-index: 5;
+        }
+        .card-placeholder::before, .card-placeholder::after {
+            content: "";
+            position: absolute;
+            background: var(--vn-accent);
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--mystic-glow);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+        .card-placeholder::before { width: 30px; height: 1px; }
+        .card-placeholder::after { width: 1px; height: 30px; }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.3; transform: scale(0.9); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        .main-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            filter: sepia(0.3) contrast(1.1);
+            transition: opacity 1.5s ease;
+            opacity: 0;
+            z-index: 10;
+        }
+
+        .vertical-subtitle {
+            position: absolute;
+            right: -50px;
+            top: 50px;
+            writing-mode: vertical-rl;
+            font-size: 0.85rem;
+            letter-spacing: 0.6em;
+            color: var(--color-khaki);
+            opacity: 0.8;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .title-group {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .main-title {
+            font-size: 2.4rem;
+            letter-spacing: 0.6rem;
+            color: var(--color-cream);
+            text-shadow: 0 0 15px var(--mystic-glow);
+            animation: titleGlow 4s ease-in-out infinite;
+        }
+        @keyframes titleGlow {
+            0%, 100% { text-shadow: 0 0 10px var(--mystic-glow); opacity: 0.9; }
+            50% { text-shadow: 0 0 25px var(--vn-accent); opacity: 1; }
+        }
+
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .mystic-btn {
+            background: transparent;
+            border: 1px solid rgba(196, 164, 132, 0.4);
+            padding: 12px 50px;
+            font-family: var(--font-pixel);
+            color: var(--color-khaki);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s;
+            cursor: pointer;
+            backdrop-filter: blur(2px);
+            text-align: center;
+            display: inline-block;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .mystic-btn::before {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .mystic-btn:hover {
+            border-color: var(--vn-accent);
+            color: var(--color-cream);
+            box-shadow: inset 0 0 15px rgba(196, 164, 132, 0.2);
+            transform: scale(1.05);
+        }
+
+        .mystic-btn:hover::before { left: 100%; }
+
+        .upload-hint {
+            font-size: 0.7rem;
+            color: var(--vn-accent);
+            opacity: 0.7;
+            margin-top: -10px;
+            letter-spacing: 2px;
+            font-style: italic;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.4; transform: translateY(0); }
+            50% { opacity: 0.9; transform: translateY(-2px); }
+        }
+
+        #fragment-upload {
+            display: none;
+        }
+
+        #status-toast {
+            position: fixed;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 20, 16, 0.9);
+            border: 1px solid var(--vn-accent);
+            color: var(--color-cream);
+            padding: 10px 30px;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            z-index: 10000;
+            display: none;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            animation: slideDown 0.4s ease-out;
+        }
+        @keyframes slideDown { from { top: -20px; opacity: 0; } to { top: 50px; opacity: 1; } }
+
+        #dream-transition {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 9999;
+            display: none;
+            background: #1a1410;
+            clip-path: circle(0% at 50% 50%);
+            transition: clip-path 2.5s cubic-bezier(0.77, 0, 0.175, 1);
+            align-items: center; justify-content: center;
+        }
+        #dream-transition.expanding { display: flex; clip-path: circle(150% at 50% 50%); }
+
+        .loading-tip {
+            position: fixed;
+            bottom: 50px; right: 50px;
+            color: var(--color-khaki);
+            font-size: 0.75rem;
+            letter-spacing: 5px;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+        .vn-ui-container {
+            position: absolute;
+            bottom: 60px;
+            width: 85%;
+            max-width: 900px;
+        }
+
+        .vn-name-plate {
+            background: var(--color-wood-dark);
+            padding: 6px 35px;
+            font-size: 0.85rem;
+            border: 1px solid var(--vn-accent);
+            border-bottom: none;
+            display: inline-block;
+            color: var(--color-cream);
+            clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+            position: relative; z-index: 5;
+        }
+
+        .vn-box {
+            background: rgba(26, 20, 16, 0.85);
+            border: 1px solid var(--vn-accent);
+            padding: 35px;
+            min-height: 160px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            text-align: left;
+            position: relative;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        .vn-text {
+            font-size: 1.25rem;
+            line-height: 1.9;
+            color: var(--color-wood-light);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+
+        @keyframes breathe-hint {
+            0%, 100% { opacity: 0.3; transform: translateX(0); }
+            50% { opacity: 1; transform: translateX(3px); }
+        }
+
+        .click-hint {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: var(--vn-accent);
+            animation: breathe-hint 2s infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .click-hint.show { opacity: 1; }
+
+        .skip-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            color: var(--vn-accent);
+            opacity: 0.6;
+            transition: all 0.3s;
+            padding: 8px 15px;
+            border: 1px solid rgba(196, 164, 132, 0.2);
+            z-index: 1000;
+            cursor: pointer !important;
+            background: rgba(0, 0, 0, 0.2);
+            animation: breathe-hint 2s infinite; 
+        }
+        .skip-btn:hover {
+            opacity: 1;
+            border-color: var(--vn-accent);
+            background: rgba(196, 164, 132, 0.1);
+        }
+
+        .dust {
+            position: absolute;
+            background: var(--vn-accent);
+            border-radius: 50%;
+            opacity: 0.2;
+            pointer-events: none;
+            animation: float-dust linear infinite;
+        }
+        @keyframes float-dust {
+            0% { transform: translateY(0) translateX(0); opacity: 0; }
+            50% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) translateX(20px); opacity: 0; }
+        }
+
+        /* ==================== 占卜互动模块 ==================== */
+
+        .custom-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 10001;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            clip-path: circle(0% at 50% 50%);
+            transition: clip-path 2s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.5s ease;
+        }
+        .custom-overlay.active { 
+            display: flex; 
+            opacity: 1; 
+            clip-path: circle(150% at 50% 50%);
+        }
+
+        .hermes-overlay { 
+            background-color: var(--color-cream); 
+            overflow: hidden;
+        }
+        
+        .hermes-envelope {
+            width: 85px; height: 58px;
+            background-color: var(--hermes-main);
+            border: 2px solid var(--color-cream);
+            position: relative;
+            margin-bottom: 35px;
+            box-shadow: 0 0 15px var(--hermes-soft-glow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: envelopePulse 1.4s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
+        }
+
+        @keyframes envelopePulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px var(--hermes-soft-glow)); }
+            15% { transform: scale(1.2); filter: drop-shadow(0 0 20px var(--hermes-soft-glow)); }
+            30% { transform: scale(1.1); }
+            45% { transform: scale(1.25); filter: drop-shadow(0 0 25px var(--hermes-main)); }
+            70% { transform: scale(1); filter: drop-shadow(0 0 5px var(--hermes-soft-glow)); }
+            100% { transform: scale(1); }
+        }
+
+        .hermes-envelope::before {
+            content: "";
+            position: absolute; top: 0; left: 0;
+            width: 0; height: 0;
+            border-left: 42px solid transparent;
+            border-right: 42px solid transparent;
+            border-top: 32px solid var(--color-cream);
+            opacity: 0.15;
+            z-index: 2;
+        }
+
+        .hermes-text {
+            color: var(--hermes-main);
+            font-size: 1.1rem;
+            letter-spacing: 0.8rem;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .hermes-sub-text {
+            color: var(--hermes-main);
+            font-size: 0.75rem;
+            letter-spacing: 0.4rem;
+            margin-top: 15px;
+            opacity: 0.5;
+        }
+
+        #divination-stage {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #fdfdf5 0%, #f7f1e3 70%, #ede6d9 100%);
+            z-index: 10005;
+            display: none;
+            flex-direction: column;
+            align-items: center; justify-content: center; overflow: hidden;
+        }
+
+        #divine-canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
+        }
+
+        #divine-curtain {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(26, 20, 16, 0);
+            z-index: 2; pointer-events: none;
+            transition: background 1.5s ease;
+        }
+        #divine-curtain.shrouded { background: rgba(26, 20, 16, 0.7); backdrop-filter: blur(5px); }
+
+        .divine-ui {
+            position: relative; z-index: 10;
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 50px;
+        }
+
+        .divine-hint-bar { margin-top: -100px; margin-bottom: 80px; text-align: center; z-index: 100; }
+        #gesture-label {
+            display: block; color: var(--color-wood-dark); letter-spacing: 12px;
+            font-size: 1.1rem; text-shadow: 0 0 15px rgba(196, 164, 132, 0.2);
+            margin-bottom: 10px; font-weight: bold; transition: color 1s;
+        }
+        #divine-curtain.shrouded ~ .divine-ui #gesture-label { color: var(--vn-accent); }
+
+        #gesture-sublabel { display: block; color: var(--color-wood-mid); font-size: 0.7rem; letter-spacing: 4px; opacity: 0.7; }
+
+        .card-row {
+            display: flex; gap: 0; perspective: 2500px; height: 420px;
+            align-items: center; justify-content: center; width: 100%; position: relative;
+            transform-style: flat;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+
+        #divine-card-row.cards-dismissed {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .divine-card-item {
+            position: absolute; width: 200px; height: 340px;
+            transition: all 0.8s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d; transform-origin: center center;
+        }
+
+        /* 选中/翻面：fixed 四向 margin 居中 + 2D 显隐（不用 3D rotateY） */
+        #divine-card-portal {
+            position: fixed;
+            inset: 0;
+            z-index: 100010;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        #divine-card-portal > .divine-card-item.extracted,
+        #divine-card-portal > .divine-card-item.flipped {
+            position: fixed !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: 0 !important;
+            bottom: 0 !important;
+            width: 264px !important;
+            height: 449px !important;
+            margin: auto !important;
+            transform: none !important;
+            transform-style: flat !important;
+            transition: none !important;
+            animation: none !important;
+            opacity: 1 !important;
+            z-index: 100012 !important;
+            pointer-events: auto;
+        }
+
+        #divine-card-portal > .divine-card-item.extracted .divine-card-inner,
+        #divine-card-portal > .divine-card-item.flipped .divine-card-inner {
+            transform: none !important;
+            transform-style: flat !important;
+            transition: opacity 0.45s ease;
+        }
+
+        #divine-card-portal > .divine-card-item.extracted:not(.flipped) .face-back {
+            display: none !important;
+        }
+
+        #divine-card-portal > .divine-card-item.flipped .face-front {
+            display: none !important;
+        }
+
+        #divine-card-portal > .divine-card-item.flipped .face-back {
+            transform: none !important;
+            backface-visibility: visible;
+        }
+
+        .divine-card-inner {
+            position: relative; width: 100%; height: 100%;
+            transform-style: preserve-3d;
+            transform-origin: center center;
+            transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .divine-card-face {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; border-radius: 8px;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .face-front { background: linear-gradient(145deg, #1a1410 0%, #2c1e14 100%); border: 2px solid #3d2b1f; position: relative; overflow: hidden; }
+        .face-front::before { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(196, 164, 132, 0.3); pointer-events: none; }
+
+        .mystic-mandala {
+            width: 130px; height: 130px; border: 1px solid rgba(196, 164, 132, 0.2); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .mystic-mandala span { color: var(--vn-accent); font-size: 2.5rem; opacity: 0.6; animation: rotate-slow 25s linear infinite; }
+
+        .element-symbol { position: absolute; font-size: 0.7rem; color: var(--vn-accent); opacity: 0.35; }
+        .sym-top-left { top: 22px; left: 22px; }
+        .sym-top-right { top: 22px; right: 22px; }
+        .sym-bot-left { bottom: 22px; left: 22px; }
+        .sym-bot-right { bottom: 22px; right: 22px; }
+
+        .face-back { background: var(--color-cream); color: var(--color-wood-dark); transform: rotateY(180deg) translateZ(1px); padding: 30px; text-align: center; border: 4px double var(--vn-accent); }
+
+        #ritual-aura {
+            position: absolute; bottom: 80px; width: 120px; height: 120px;
+            border-radius: 50%; border: 1px solid rgba(196, 164, 132, 0.3);
+            display: none; align-items: center; justify-content: center; pointer-events: none; z-index: 3001;
+        }
+        #ritual-aura::before { content: ""; position: absolute; inset: -10px; border: 1px solid var(--vn-accent); border-radius: 50%; animation: pulse 2s infinite; opacity: 0.5; }
+        #ritual-progress { width: 100px; height: 100px; transform: rotate(-90deg); }
+        #ritual-progress circle { fill: none; stroke: var(--vn-accent); stroke-width: 2; stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.1s linear; }
+
+        #cam-preview {
+            position: fixed; bottom: 30px; right: 30px; width: 180px; height: 135px;
+            border: 2px solid var(--vn-accent); border-radius: 6px; overflow: hidden;
+            background: #000; opacity: 0.6; transform: scaleX(-1); z-index: 10006; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        #input-video { width: 100%; height: 100%; object-fit: cover; }
+
+        .venus-overlay { 
+            background-color: var(--love-pink-bg); 
+            overflow: hidden; 
+            transition: clip-path 2.5s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.5s ease;
+        }
+        
+        .heart-beat {
+            font-size: 80px; 
+            color: var(--love-main); 
+            margin-bottom: 30px;
+            filter: drop-shadow(0 0 15px var(--love-heart-glow));
+            animation: heartDoubleBeat 1.4s infinite cubic-bezier(0.45, 0.05, 0.55, 0.95);
+        }
+
+        @keyframes heartDoubleBeat {
+            0% { transform: scale(1); filter: drop-shadow(0 0 5px var(--love-heart-glow)); }
+            15% { transform: scale(1.25); filter: drop-shadow(0 0 25px var(--love-heart-glow)); }
+            30% { transform: scale(1.1); }
+            45% { transform: scale(1.3); filter: drop-shadow(0 0 30px var(--love-main)); }
+            70% { transform: scale(1); filter: drop-shadow(0 0 5px var(--love-heart-glow)); }
+            100% { transform: scale(1); }
+        }
+
+        .venus-text { 
+            color: var(--love-main); 
+            font-size: 1.1rem; 
+            letter-spacing: 0.8rem; 
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .venus-sub-text {
+            color: var(--love-deep);
+            font-size: 0.75rem;
+            letter-spacing: 0.4rem;
+            margin-top: 15px;
+            opacity: 0.6;
+        }
+
+        .venus-feedback-hint, .hermes-feedback-hint {
+            position: absolute;
+            bottom: 60px;
+            right: 70px;
+            font-size: 0.7rem;
+            letter-spacing: 0.4rem;
+            animation: breathe-hint-horizontal 3s infinite ease-in-out;
+        }
+
+        @keyframes breathe-hint-horizontal {
+            0%, 100% { opacity: 0.3; transform: translateX(0); }
+            50% { opacity: 0.7; transform: translateX(8px); }
+        }
+
+        .return-btn {
+            margin-top: 50px; padding: 12px 60px; border: 1px solid var(--love-main);
+            background: transparent; font-family: inherit; font-size: 0.75rem;
+            cursor: pointer; letter-spacing: 6px; color: var(--love-main);
+            transition: 0.4s; opacity: 0; animation: fadeInBtn 1s ease 1.5s forwards;
+        }
+        .return-btn:hover { background: rgba(232, 167, 181, 0.05); letter-spacing: 8px; }
+        
+        @keyframes fadeInBtn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .page#page3.hermes-mode {
+            background-color: var(--color-cream);
+            transition: background-color 1.5s ease;
+            overflow: hidden;
+        }
+
+        .hermes-decor-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            display: none;
+            pointer-events: none;
+        }
+        .hermes-mode .hermes-decor-container,
+        .venus-mode .hermes-decor-container { 
+            display: block; 
+        }
+
+        .hermes-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            border: 1px solid rgba(93, 58, 26, 0.08);
+            border-radius: 50%;
+            transition: border-color 1.5s ease;
+        }
+        .venus-mode .hermes-ring {
+            border-color: rgba(212, 147, 161, 0.4); /* 从 0.15 提升至 0.4，并使用更深的色值 */
+        }
+        
+        .hermes-ring-1 { width: 400px; height: 400px; animation: rotate 40s linear infinite reverse; border-style: dashed; }
+        .hermes-ring-2 { width: 700px; height: 700px; animation: rotate 80s linear infinite; }
+        .hermes-ring-3 { width: 1000px; height: 1000px; border-style: double; border-width: 3px; opacity: 0.5; }
+
+        .coffee-particle {
+            position: absolute;
+            background: var(--hermes-main);
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+            filter: blur(1px);
+            transition: background 1.5s ease;
+        }
+        .venus-mode .coffee-particle {
+            background: var(--love-deep); /* 使用更深的粉色变量 */
+            opacity: 0.55; /* 透明度从 0.25 提升至 0.55 */
+            box-shadow: 0 0 8px rgba(212, 147, 161, 0.4); /* 增加微弱的粉色光晕 */
+        }
+
+        .hermes-mode h2 {
+            color: var(--hermes-main) !important;
+            text-shadow: none !important;
+            transition: color 1s ease;
+        }
+
+        .jump-ripple {
+            position: fixed;
+            border: 2px solid var(--vn-accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 100000;
+            animation: ripple-out 0.8s ease-out forwards;
+        }
+        @keyframes ripple-out {
+            from { width: 0; height: 0; opacity: 0.8; transform: translate(-50%, -50%); }
+            to { width: 300px; height: 300px; opacity: 0; transform: translate(-50%, -50%); }
+        }
+
+        .hermes-mode .mystic-btn {
+            border-color: rgba(93, 58, 26, 0.3);
+            color: var(--hermes-main);
+            background: rgba(93, 58, 26, 0.05);
+        }
+
+        .hermes-mode .mystic-btn:hover {
+            border-color: var(--hermes-main);
+            background: rgba(93, 58, 26, 0.1);
+            box-shadow: 0 4px 15px rgba(93, 58, 26, 0.1);
+        }
+
+        .hermes-mode .mystic-btn[onclick*="location.reload"] {
+            color: var(--hermes-main) !important;
+            opacity: 0.6 !important;
+        }
+
+        .hermes-mode .hermes-ring {
+            border-color: rgba(93, 58, 26, 0.25); /* 透明度从 0.08 提升至 0.25 */
+        }
+
+        .hermes-mode .coffee-particle {
+            opacity: 0.45; /* 透明度从 0.15 提升至 0.45，增加存在感 */
+            box-shadow: 0 0 4px rgba(93, 58, 26, 0.1); /* 为褐色粒子增加微弱阴影 */
+        }
+
+        .page#page3.venus-mode {
+            background-color: var(--love-pink-bg);
+            transition: background-color 1.5s ease;
+        }
+
+        .venus-mode h2 {
+            color: var(--love-deep) !important;
+            text-shadow: 0 2px 4px rgba(232, 167, 181, 0.2) !important;
+        }
+
+        .venus-mode .mystic-btn {
+            border-color: rgba(212, 147, 161, 0.4);
+            color: var(--love-deep);
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .venus-mode .mystic-btn:hover {
+            border-color: var(--love-deep);
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 15px rgba(232, 167, 181, 0.2);
+            color: var(--love-deep);
+        }
+
+        .venus-mode .mystic-btn[onclick*="location.reload"] {
+            color: var(--love-deep) !important;
+            opacity: 0.5 !important;
+        }
+
+        .exit-venus-btn {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            z-index: 100;
+            color: var(--love-deep);
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            cursor: pointer;
+            padding: 12px 24px;
+            border: 1px solid rgba(232, 167, 181, 0.3);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .exit-venus-btn:hover {
+            color: var(--love-main);
+            border-color: var(--love-main);
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(232, 167, 181, 0.2);
+        }
+
+        .exit-meditation-btn {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            z-index: 100;
+            color: var(--love-main);
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            cursor: pointer;
+            padding: 12px 24px;
+            border: 1px solid rgba(232, 167, 181, 0.3);
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(8px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .exit-meditation-btn:hover {
+            color: var(--love-deep);
+            border-color: var(--love-deep);
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(232, 167, 181, 0.1);
+        }
+
+        .exit-divine-btn {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            z-index: 10100;
+            color: var(--color-wood-mid);
+            font-size: 0.7rem;
+            letter-spacing: 4px;
+            cursor: pointer;
+            padding: 12px 24px;
+            border: 1px solid rgba(93, 58, 26, 0.15);
+            background: rgba(253, 253, 245, 0.5);
+            backdrop-filter: blur(8px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+        .exit-divine-btn:hover {
+            color: var(--hermes-main);
+            border-color: var(--hermes-main);
+            background: rgba(253, 253, 245, 0.9);
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(93, 58, 26, 0.1);
+        }
+
+        .page#page4 {
+            background: linear-gradient(180deg, #fff1f3 0%, #ffe4e8 100%);
+            color: var(--love-deep);
+        }
+
+        .page-meditation {
+            background-color: var(--color-cream) !important;
+            color: var(--love-main);
+        }
+
+        .meditation-prompt {
+            font-size: 1.1rem;
+            letter-spacing: 0.6rem;
+            margin-bottom: 40px;
+            text-align: center;
+            opacity: 0.8;
+            line-height: 2;
+        }
+
+        .meditation-timer {
+            font-size: 5rem;
+            font-weight: 300;
+            color: var(--love-main);
+            opacity: 0;
+            transition: opacity 1s ease, transform 1s ease;
+            transform: scale(0.8);
+        }
+
+        .meditation-timer.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .locked-hint {
+            position: absolute;
+            bottom: 20%;
+            font-size: 0.8rem;
+            letter-spacing: 5px;
+            color: var(--love-deep);
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+
+        .quiz-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            padding: 20px;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .color-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 2px solid white;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .color-btn:hover { transform: scale(1.15); }
+        .color-btn:active { transform: scale(0.9); }
+
+        .btn-red { background-color: #ff6b6b; }
+        .btn-blue { background-color: #4dadff; }
+        .btn-yellow { background-color: #ffd93d; }
+        .btn-black { background-color: #2f2f2f; }
+        .btn-white { background-color: #ffffff; }
+
+        .quiz-controls {
+            display: flex;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .undo-btn {
+            background: transparent;
+            border: 1px solid var(--love-main);
+            color: var(--love-main);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+        }
+
+        .confirm-btn {
+            background: var(--love-main);
+            color: white;
+            border: none;
+            padding: 10px 40px;
+            border-radius: 25px;
+            font-size: 0.8rem;
+            letter-spacing: 4px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--love-heart-glow);
+        }
+
+        #page-q1 {
+            transition: background-color 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .expression-input-group {
+            display: none; /* 初始隐藏，由JS在2秒后显示 */
+            flex-direction: column;
+            align-items: center;
+            gap: 25px;
+            animation: fadeIn 1.5s ease forwards;
+        }
+
+        .mystic-input {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--love-main);
+            color: var(--love-deep);
+            font-family: var(--font-pixel);
+            font-size: 1.5rem;
+            text-align: center;
+            padding: 10px;
+            width: 300px;
+            outline: none;
+            transition: border-color 0.4s;
+        }
+
+        .mystic-input:focus { border-bottom-color: var(--love-deep); }
+
+        .error-hint {
+            color: #ff4d4d;
+            font-size: 0.7rem;
+            letter-spacing: 2px;
+            margin-top: -10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        /* 动态背景类 */
+        .bg-state-blue { background-color: #e0f2ff !important; }
+        .bg-state-beige { background-color: var(--color-cream) !important; }
+        .bg-state-pink { background-color: var(--love-pink-bg) !important; }
+
+        /* 红线动画 */
+        .red-line {
+            position: fixed;
+            top: 50%; left: -100%;
+            width: 100%; height: 2px;
+            background: #ff0000;
+            box-shadow: 0 0 15px #ff0000;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .red-line.active { animation: linePass 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes linePass {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        /* 维纳斯结果文本样式 */
+        #venus-result-text {
+            position: absolute;
+            width: 80%;
+            text-align: center;
+            font-size: 1.2rem;
+            line-height: 2.2;
+            letter-spacing: 5px;
+            color: var(--love-deep);
+            opacity: 0;
+            transition: opacity 2s ease;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(232, 167, 181, 0.3);
+        }
+
+        /* 窥视页面样式 */
+        .peeking-eye-container {
+            position: relative;
+            width: 200px; height: 120px;
+            border: 1px solid var(--vn-accent);
+            border-radius: 50% 50% 0 0; /* 模拟眼睑 */
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+        }
+        .peeking-pupil {
+            width: 40px; height: 40px;
+            background: var(--color-wood-dark);
+            border-radius: 50%;
+            filter: blur(2px);
+            animation: eyeObserve 4s infinite alternate;
+        }
+        @keyframes eyeObserve {
+            0% { transform: scale(0.8) translateX(-20px); }
+            100% { transform: scale(1.1) translateX(20px); }
+        }
+
+        .love-option-card {
+            background: rgba(255, 255, 255, 0.7);
+            border: 2px solid var(--love-main);
+            border-radius: 50px;
+            padding: 18px 40px;
+            text-align: center;
+            cursor: default; /* UI展示，不可交互 */
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 20px rgba(232, 167, 181, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .love-option-card:hover {
+            transform: translateY(-3px);
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 12px 25px rgba(232, 167, 181, 0.25);
+        }
+
+        .love-option-card::before {
+            content: "♥";
+            color: var(--love-main);
+            font-size: 1.2rem;
+            opacity: 0.6;
+        }
+
+        .love-option-title {
+            font-size: 1.05rem;
+            letter-spacing: 4px;
+            font-weight: bold;
+            color: var(--love-deep);
+        }
+
+        .love-option-sub {
+            position: absolute;
+            bottom: 4px;
+            font-size: 0.55rem;
+            letter-spacing: 2px;
+            opacity: 0.4;
+            text-transform: uppercase;
+        }
+
+        .peeking-subtitle {
+            position: absolute;
+            bottom: 60px;
+            right: 60px;
+            color: var(--vn-accent);
+            font-size: 0.9rem;
+            letter-spacing: 6px;
+            writing-mode: vertical-rl;
+            opacity: 0;
+            animation: fadeInSub 3s ease forwards 1.5s;
+            text-shadow: 0 0 8px rgba(196, 164, 132, 0.3);
+            pointer-events: none;
+        }
+
+        @keyframes fadeInSub {
+            0% { opacity: 0; transform: translateY(20px); filter: blur(5px); }
+            100% { opacity: 0.7; transform: translateY(0); filter: blur(0); }
+        }
+
+        .heart-float {
+            position: absolute;
+            color: var(--love-main);
+            pointer-events: none;
+            z-index: 1;
+            animation: heartFloatUp linear forwards;
+        }
+
+        @keyframes heartFloatUp {
+            0% { transform: translateY(0) scale(0); opacity: 0; }
+            20% { opacity: 0.6; transform: translateY(-20vh) scale(1) rotate(15deg); }
+            100% { transform: translateY(-100vh) scale(0.8) rotate(-15deg); opacity: 0; }
+        }
+
+        /* 增量样式：信件窥视页面 */
+        #page-letter {
+            display: none;
+            background-color: var(--color-cream);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #page-letter.active {
+            display: flex;
+        }
+
+        .letter-container {
+            position: relative;
+            width: 320px;
+            height: 220px;
+            transform: translateY(100vh);
+            transition: transform 1.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            z-index: 5;
+        }
+
+        .letter-container.in-center {
+            transform: translateY(20px);
+        }
+
+        .envelope {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: #fdf5e6;
+            border: 1px solid rgba(232, 167, 181, 0.4);
+            box-shadow: 0 10px 30px rgba(232, 167, 181, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 1.5s ease;
+            z-index: 3;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 160px solid transparent;
+            border-right: 160px solid transparent;
+            border-top: 120px solid #fae6e8;
+            z-index: 4;
+            transform-origin: top;
+            transition: transform 1s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0 3px 4px rgba(232, 167, 181, 0.1));
+        }
+
+        .envelope-front {
+            position: absolute;
+            top: 0; left: 0;
+            width: 0; height: 0;
+            border-left: 160px solid #fae6e8;
+            border-right: 160px solid #fae6e8;
+            border-bottom: 110px solid #f5dee0;
+            border-top: 110px solid transparent;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .heart-sticker {
+            position: absolute;
+            top: 105px;
+            left: 145px;
+            width: 30px;
+            height: 30px;
+            background: var(--love-main);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            z-index: 5;
+            cursor: grab;
+            box-shadow: 0 2px 5px rgba(232, 167, 181, 0.5);
+            transition: transform 0.2s;
+        }
+
+        .heart-sticker:active { cursor: grabbing; }
+
+        .heart-sticker.torn {
+            animation: flyAway 1s forwards;
+            pointer-events: none;
+        }
+
+        @keyframes flyAway {
+            to { transform: translate(150px, -100px) rotate(45deg); opacity: 0; }
+        }
+
+        .letter-hint-drag {
+            position: absolute;
+            top: 155px;
+            width: 100%;
+            text-align: center;
+            font-size: 0.65rem;
+            color: var(--love-main);
+            letter-spacing: 3px;
+            animation: breathe 2s infinite;
+            pointer-events: none;
+        }
+        .envelope.open .letter-hint-drag { display: none; }
+
+        #lined-paper {
+            display: none; /* 初始隐藏 */
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            z-index: 10;
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            height: 380px;
+            background-color: #fdfdf5;
+            background-image: linear-gradient(transparent 95%, #f2d5da 95%);
+            background-size: 100% 28px;
+            border: 1px solid rgba(232, 167, 181, 0.3);
+            box-shadow: 0 5px 15px rgba(232, 167, 181, 0.15);
+            padding: 30px 20px 20px 20px;
+            box-sizing: border-box;
+            font-family: var(--font-pixel);
+            color: var(--love-deep);
+            font-size: 0.8rem;
+            line-height: 28px;
+        }
+
+        #lined-paper.show {
+            display: block !important;
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+        }
+
+        .envelope.open .lined-paper {
+            display: block;
+            transform: translateY(-110px);
+            opacity: 1;
+            z-index: 10;
+        }
+
+        .paper-content {
+            opacity: 0;
+            transition: opacity 1.5s ease 1s;
+            pointer-events: none;
+            letter-spacing: 1px;
+        }
+        .envelope.open .paper-content { opacity: 1; }
+
+        .prediction-block {
+            /* 绑定动画：名称 持续时间 动画曲线 结束后停留在最后一帧 */
+            animation: fadeInBlur 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes fadeInBlur {
+            from {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+                filter: blur(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+                filter: blur(0);
+            }
+        }
+
+        .paper-hint {
+            position: absolute;
+            bottom: 15px;
+            width: 100%;
+            left: 0;
+            text-align: center;
+            font-size: 0.65rem;
+            color: var(--love-main);
+            letter-spacing: 2px;
+            opacity: 0;
+            animation: breathe 2s infinite;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .message-input-area {
+            position: absolute;
+            top: 70%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 1s ease;
+            width: 85%;
+            max-width: 400px;
+        }
+
+        .message-input-area textarea {
+            width: 100%;
+            height: 90px;
+            background: rgba(253, 253, 245, 0.9);
+            border: 1px dashed var(--love-main);
+            border-radius: 8px;
+            padding: 15px;
+            color: var(--love-deep);
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            letter-spacing: 2px;
+            box-shadow: inset 0 0 10px rgba(232, 167, 181, 0.1);
+            transition: border-color 0.3s;
+        }
+        .message-input-area textarea:focus {
+            border-style: solid;
+            background: #fff;
+        }
+
+        .venus-blessing {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 85%;
+            max-width: 500px;
+            text-align: center;
+            color: var(--love-deep);
+            font-size: 1.05rem;
+            line-height: 2.4;
+            letter-spacing: 4px;
+            opacity: 0;
+            display: none;
+            transition: opacity 2s ease;
+            text-shadow: 0 0 10px rgba(232, 167, 181, 0.2);
+            z-index: 30;
+        }
+
+        .paper-overlay-click {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 15;
+            display: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="noise"></div>
+    <div class="bg-overlay"></div>
+    <div class="astrolabe"></div>
+    <div class="frame-border"></div>
+    <div id="particles"></div>
+    <div id="status-toast"></div>
+
+    <div id="face-status-indicator"></div>
+
+    <div id="page-meditation" class="page">
+        <div class="exit-meditation-btn" onclick="exitMeditation()">✕ 中断冥想 (CANCEL)</div>
+        <div class="meditation-prompt">
+            闭上双眼<br>
+            在意识的虚空中，描绘那个人的轮廓
+        </div>
+        <div id="meditation-timer" class="meditation-timer">5</div>
+        <div id="meditation-locked" class="locked-hint">✧ 意 象 已 锁 定 ✧</div>
+    </div>
+
+    <div id="page-q1" class="page">
+        <div class="quiz-container">
+            <h2 style="color: var(--love-deep); letter-spacing: 6px; font-size: 1.1rem; text-align: center;">这个人在你脑海中的整体颜色是？</h2>
+            <div class="color-palette">
+                <div class="color-btn btn-red" onclick="addColorToMix([255, 107, 107])"></div>
+                <div class="color-btn btn-blue" onclick="addColorToMix([77, 173, 255])"></div>
+                <div class="color-btn btn-yellow" onclick="addColorToMix([255, 217, 61])"></div>
+                <div class="color-btn btn-black" onclick="addColorToMix([47, 47, 47])"></div>
+                <div class="color-btn btn-white" onclick="addColorToMix([255, 255, 255])"></div>
+            </div>
+            <div class="quiz-controls">
+                <button class="undo-btn" onclick="undoColorMix()">撤回颜色 (UNDO)</button>
+                <button class="confirm-btn" onclick="confirmColorQ1()">确认并继续</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 恋心轨迹窥测：恋签环节（自 恋签环节.html，DOM 原样迁入） -->
+    <div id="page-lovesign" class="page">
+        <div class="lovesign-root">
+            <!-- WebGL 场景容器 -->
+                <div id="canvas-container"></div>
+
+                <!-- 极简浪漫：高斯模糊过渡幕帘 -->
+                <div id="transition-overlay" class="fixed inset-0 z-40 bg-[#fcfaf2]/90 backdrop-blur-3xl transition-all duration-[1200ms] ease-out pointer-events-none opacity-0"></div>
+
+                <!-- UI 层 -->
+                <div id="ui-layer">
+                    <!-- 欢迎画面：增加高斯模糊渐显效果 -->
+                    <div id="start-screen" class="flex flex-col items-center soft-blur-in">
+                        <div class="heart-beat mb-6 text-3xl opacity-80" style="color: var(--love-main);">♥</div>
+                        <h1 class="text-xl mb-3 text-[#8b1a1a] tracking-[0.6em] font-light">
+                            维 纳 斯 恋 签 殿
+                        </h1>
+                        <p class="mb-12 text-[0.7rem] text-[#8b1a1a] opacity-50 tracking-[0.4em] uppercase">Romanticist Occultism</p>
+                        
+                        <button id="start-btn" class="btn-venus">
+                            [ 唤 醒 羁 绊 ]
+                        </button>
+                        <p class="mt-8 text-xs text-[#8b1a1a] opacity-40 font-light tracking-[0.15em]">窥视红线的宿命因缘 · 听见藏在呼吸里的真相</p>
+                    </div>
+                    
+                    <!-- 操作控制面板 -->
+                    <div id="interactive-panel" class="absolute bottom-10 flex flex-col items-center gap-4 hidden">
+                        <div id="hint-text" class="text-xs text-[#8b1a1a] opacity-60 text-center px-4 tracking-[0.25em]">
+                            [ 在水面滑动鼠标洗签 · 仅最上层的红线恋签可被感应 ]
+                        </div>
+                        <button id="manual-wash-btn" class="btn-venus text-[0.7rem] tracking-[0.3em] py-2 px-6">
+                            [ 拨 动 命 运 水 流 ]
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 顶部洗签涟漪提示 -->
+                <div id="stir-indicator">
+                    ♥ 丝缕红线交缠，命运正在重组...
+                </div>
+
+                <!-- 指尖共鸣光圈 -->
+                <div id="finger-cursor"></div>
+
+                <!-- 3D 纸张翻转结构层 -->
+                <div id="result-card-container">
+                    <div id="result-card-inner">
+                        <!-- 【正面】命运呢喃卡 -->
+                        <div class="epistle-paper epistle-border" id="epistle-front-side">
+                            <div class="h-8"></div> <!-- 头部等高占位符，保持正面和背面等高 -->
+                            <div id="wax-seal" class="heart-beat-centered" title="轻按拆封羁绊"></div>
+                            
+                            <canvas id="cardiogram-header"></canvas>
+                            
+                            <div class="whisper-title text-center">✦ 维纳斯的呢喃 ✦</div>
+                            <div class="whisper-text" id="fortune-content" style="opacity: 0.1; filter: blur(3px);">
+                                “拆开这封久远的羁绊信笺，<br>
+                                在墨香彻底晕开的深处，<br>
+                                你所牵挂的心跳，已与你同频共振。”
+                            </div>
+                            
+                            <div class="whisper-sub text-center" id="fortune-sub">[ 暂未拆封 ]</div>
+                            
+                            <div class="flex flex-col sm:flex-row justify-center gap-3 mt-8">
+                                <!-- 祈愿写信按钮：初始设为 hidden 不占位，保证归宿尘埃绝对居中 -->
+                                <button id="show-prayer-btn" class="btn-venus py-2 px-6 text-xs tracking-[0.25em] hidden opacity-0 transition-all duration-1000">
+                                    [ 祈 愿 镌 刻 ]
+                                </button>
+                                <button class="btn-venus py-2 px-6 text-xs tracking-[0.25em]" onclick="returnFromLoveSign()">
+                                    [ 归 宿 尘 埃 ]
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 【背面】祈愿写信卡 -->
+                        <div class="epistle-paper epistle-border epistle-back" id="epistle-back-side">
+                            <div class="h-8"></div> <!-- 头部等高占位符，完美防止位移 -->
+                            <div class="whisper-title text-center">✦ 寄往维纳斯 ✦</div>
+                            
+                            <!-- 输入框与祝福状态承载器 -->
+                            <div id="prayer-form-area" class="transition-all duration-1000">
+                                <p class="text-[0.7rem] text-[#8b1a1a] opacity-70 mb-4 tracking-[0.2em] leading-relaxed text-center">
+                                    “将你关于他/她的执念与期许融入红线，送往水池深处祈福。”
+                                </p>
+                                <textarea id="prayer-text-input" maxlength="60" class="w-full h-28 p-3 bg-transparent border border-dashed border-[#8b1a1a]/25 rounded focus:outline-none focus:border-[#8b1a1a]/60 text-xs text-[#520c0c] tracking-[0.15em] leading-relaxed resize-none placeholder-[#8b1a1a]/40" placeholder="在此刻低语：写下你内心深处的心愿，或是一句想对那个重要的人说的话..."></textarea>
+                                <div class="text-right text-[0.6rem] text-[#8b1a1a]/40 mt-1 tracking-widest" id="prayer-char-counter">0 / 60</div>
+                            </div>
+
+                            <div id="prayer-success-area" class="hidden transition-all duration-1000 opacity-0 flex flex-col items-center justify-center py-6">
+                                <div class="text-2xl mb-4 text-[#8b1a1a] opacity-80">♥</div>
+                                <p class="text-xs text-[#520c0c] tracking-[0.2em] leading-loose text-center px-4" id="prayer-status-text">
+                                    你的低语已被维纳斯编织进红线。<br>
+                                    命运顺流而去，愿你终得偿所愿。
+                                </p>
+                            </div>
+
+                            <div class="flex justify-center gap-3 mt-6">
+                                <button id="send-prayer-btn" class="btn-venus py-2 px-6 text-xs tracking-[0.25em]">
+                                    [ 丝 缕 融 水 ]
+                                </button>
+                                <button id="back-to-front-btn" class="btn-venus py-2 px-6 text-xs tracking-[0.25em]">
+                                    [ 翻 回 呢 喃 ]
+                                </button>
+                                <button class="btn-venus py-2 px-6 text-xs tracking-[0.25em] hidden" id="final-close-btn" onclick="returnFromLoveSign()">
+                                    [ 归 宿 尘 埃 ]
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+        </div>
+    </div>
+
+    <!-- 心跳共振频率：匹配度测试（自 匹配度测试环节.html） -->
+    <div id="page-heartrate" class="page">
+        <div class="heartrate-root parchment-grain min-h-screen relative overflow-y-auto py-8">
+            <div class="noise-overlay"></div>
+
+                <!-- 宿缘红线背景层：全局交织穿插的红线 (The Crimson Thread - Luminescent Pulse Glow) -->
+                <div class="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+                    <svg class="w-full h-full glow-red-line" id="global-red-line" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M-100,350 C350,180 450,780 720,450 C990,120 1150,830 1600,600" stroke="#B3243C" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M1500,150 L1120,250 C950,-50 720,350 490,750 C350,300 120,520 -100,700" stroke="#C3A25A" stroke-width="0.6" stroke-dasharray="6 6" stroke-linecap="round"/>
+                    </svg>
+                </div>
+
+                <div class="max-w-5xl mx-auto px-4 relative z-10 flex flex-col min-h-screen justify-between">
+                    
+                    <!-- 头部大标题：超宽字距、呢喃古卷气韵 (仅在非封面状态下高亮显示) -->
+                    <header id="main-header" class="text-center mb-6 shrink-0 transition-opacity duration-750 opacity-0 hidden">
+                        <span id="header-ritual" class="text-[9px] uppercase tracking-[0.5em] text-venus-red/60 font-serif block mb-3">✧ Venus Epistle Calculating Altar ✧</span>
+                        <h1 id="header-title" class="font-serif text-2xl md:text-3xl font-light tracking-[0.3em] text-venus-deep leading-relaxed">
+                            宿缘契合殿
+                        </h1>
+                        <div class="w-20 h-[1px] bg-gradient-to-r from-transparent via-venus-gold/50 to-transparent mx-auto mt-4"></div>
+                    </header>
+
+                    <!-- 主内容视窗：单页流程式推进核心 -->
+                    <div class="flex-grow flex items-center justify-center my-4">
+
+                        <!-- ================= STATE -1: 宿缘契合殿 封面 (PRELUDES) ================= -->
+                        <section id="screen-prelude" class="screen-transition w-full max-w-2xl text-center py-12 px-6 space-y-12">
+                            <div class="space-y-4">
+                                <span class="text-[10px] uppercase tracking-[0.6em] text-venus-red/50 font-serif block">✦ Romanticist Occultism ✦</span>
+                                <h2 class="font-serif text-3xl md:text-5xl font-light tracking-[0.25em] text-venus-deep leading-relaxed">
+                                    宿缘契合殿
+                                </h2>
+                                <p class="font-serif text-[11px] uppercase tracking-[0.4em] text-venus-gold">
+                                    - 宿命羁绊与认知错频计算神坛 -
+                                </p>
+                                <div class="w-12 h-[1px] bg-venus-red/30 mx-auto mt-6"></div>
+                            </div>
+
+                            <div class="pt-4">
+                                <button type="button" onclick="initializeEngine()" class="altar-btn px-10 py-4 text-xs font-semibold uppercase rounded-full shadow-lg">
+                                    [ ✦ 启动宿缘穿引 / INITIALIZE ✦ ]
+                                </button>
+                            </div>
+
+                            <div class="pt-6">
+                                <button type="button" onclick="returnFromHeartSync()" class="altar-btn px-8 py-2.5 text-[9px] font-semibold uppercase rounded-full opacity-75">
+                                    [ 归 还 回 廊 ]
+                                </button>
+                            </div>
+
+                            <div class="text-[9px] text-venus-deep/35 tracking-[0.2em] uppercase pt-12">
+                                ✧ BASED ON 16 LOVETYPE & 16 MBTI NARRATIVE MODELS ✧
+                            </div>
+                        </section>
+                        
+                        <!-- ================= STATE 0: A & B 双坐标同屏填报 ================= -->
+                        <section id="screen-input-both" class="screen-transition epistle-paper classic-border corner-star w-full rounded-2xl p-6 md:p-8 shadow-2xl relative overflow-hidden hidden">
+                            <div class="absolute top-0 left-0 w-full h-[1.5px] bg-gradient-to-r from-transparent via-venus-gold/30 to-transparent"></div>
+                            
+                            <!-- 主体栅格：左右对比布局 -->
+                            <div class="grid grid-cols-1 lg:grid-cols-21 gap-6 items-stretch">
+                                
+                                <!-- Coordinate A Panel -->
+                                <div class="lg:col-span-10 space-y-4">
+                                    <div class="flex items-center justify-between border-b border-venus-red/15 pb-2 mb-4">
+                                        <h2 class="text-xs md:text-sm font-medium text-venus-deep font-serif tracking-[0.2em] flex items-center gap-2 uppercase">
+                                            <span class="hr-heart-mark" aria-hidden="true"></span> [ 镌刻 A 方因缘坐标 ]
+                                        </h2>
+                                        <span class="text-[8px] text-venus-red/70 bg-venus-parchment px-2 py-0.5 rounded border border-venus-gold/25 font-mono tracking-widest">COORDINATE A</span>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <!-- A方姓名 -->
+                                        <div>
+                                            <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">爱意称呼 &bull; ALIAS</label>
+                                            <input type="text" id="nameA" placeholder="输入 A 的称谓 (例如: 林深)" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none placeholder:text-venus-ink/20 tracking-wider font-light" required>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <!-- A方生日 -->
+                                            <div>
+                                                <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">降生日时 &bull; BIRTHDATE</label>
+                                                <input type="date" id="birthdateA" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none font-mono font-light text-center" required>
+                                            </div>
+                                            <!-- A方星座 -->
+                                            <div>
+                                                <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">命定星座 &bull; ZODIAC</label>
+                                                <select id="zodiacA" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none font-light" required>
+                                                    <option value="白羊座">白羊座 (Aries) - 火</option>
+                                                    <option value="金牛座">金牛座 (Taurus) - 土</option>
+                                                    <option value="双子座">双子座 (Gemini) - 风</option>
+                                                    <option value="巨蟹座">巨蟹座 (Cancer) - 水</option>
+                                                    <option value="狮子座">狮子座 (Leo) - 火</option>
+                                                    <option value="处女座">处女座 (Virgo) - 土</option>
+                                                    <option value="天秤座">天秤座 (Libra) - 风</option>
+                                                    <option value="天蝎座">天蝎座 (Scorpio) - 水</option>
+                                                    <option value="射手座">射手座 (Sagittarius) - 火</option>
+                                                    <option value="摩羯座">摩羯座 (Capricorn) - 土</option>
+                                                    <option value="水瓶座">水瓶座 (Aquarius) - 风</option>
+                                                    <option value="双鱼座">双鱼座 (Pisces) - 水</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <!-- A方MBTI -->
+                                            <div>
+                                                <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">认知结构 &bull; MBTI TYPE</label>
+                                                <select id="mbtiA" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none font-light" required>
+                                                    <option value="ISTJ">ISTJ 物流师</option>
+                                                    <option value="ISFJ">ISFJ 守护者</option>
+                                                    <option value="INFJ">INFJ 提倡者</option>
+                                                    <option value="INTJ">INTJ 建筑师</option>
+                                                    <option value="ISTP">ISTP 见赏家</option>
+                                                    <option value="ISFP">ISFP 探险家</option>
+                                                    <option value="INFP" selected>INFP 调停者</option>
+                                                    <option value="INTP">INTP 思考者</option>
+                                                    <option value="ESTP">ESTP 企业家</option>
+                                                    <option value="ESFP">ESFP 表演者</option>
+                                                    <option value="ENFP">ENFP 竞选者</option>
+                                                    <option value="ENTP">ENTP 辩论家</option>
+                                                    <option value="ESFJ">ESFJ 执政官</option>
+                                                    <option value="ENFJ">ENFJ 教导者</option>
+                                                    <option value="ESTJ">ESTJ 总经理</option>
+                                                    <option value="ENTJ">ENTJ 指挥官</option>
+                                                </select>
+                                            </div>
+                                            <!-- A方LoveType -->
+                                            <div>
+                                                <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">宿缘形态 &bull; LOVETYPE</label>
+                                                <select id="lovetypeA" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none font-light" required>
+                                                    <option value="LAPE">LAPE 狮子队长</option>
+                                                    <option value="LAPO">LAPO 完美变色龙</option>
+                                                    <option value="LARE">LARE 魅力平衡者</option>
+                                                    <option value="LARO">LARO 仰慕的前辈</option>
+                                                    <option value="LCPE" selected>LCPE 隐藏宝宝</option>
+                                                    <option value="LCPO">LCPO 主角</option>
+                                                    <option value="LCRE">LCRE 隐藏宝宝 (LCRE版)</option>
+                                                    <option value="LCRO">LCRO 老板猫</option>
+                                                    <option value="FAPE">FAPE 最后的爱人</option>
+                                                    <option value="FAPO">FAPO 小恶魔天使</option>
+                                                    <option value="FARE">FARE 能干管理者</option>
+                                                    <option value="FARO">FARO 神秘生物</option>
+                                                    <option value="FCPE">FCPE 忠犬八公</option>
+                                                    <option value="FCPO">FCPO 爱情怪兽</option>
+                                                    <option value="FCRE">FCRE 聪明兔子</option>
+                                                    <option value="FCRO">FCRO 浪漫魔法师</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Symmetrical Binding Red Line (The Red Line of Fate) -->
+                                <div class="hidden lg:flex lg:col-span-1 justify-center items-center">
+                                    <div class="inter-panel-bound-line"></div>
+                                </div>
+                                
+                                <!-- Coordinate B Panel -->
+                                <div class="lg:col-span-10 space-y-4">
+                                    <div class="flex items-center justify-between border-b border-venus-red/15 pb-2 mb-4">
+                                        <h2 class="text-xs md:text-sm font-medium text-venus-deep font-serif tracking-[0.2em] flex items-center gap-2 uppercase">
+                                            <span class="hr-heart-mark" aria-hidden="true"></span> [ 镌刻 B 方因缘坐标 ]
+                                        </h2>
+                                        <span class="text-[8px] text-venus-red/70 bg-venus-parchment px-2 py-0.5 rounded border border-venus-gold/25 font-mono tracking-widest">COORDINATE B</span>
+                                    </div>
+
+                                    <div class="space-y-4">
+                                        <!-- B方姓名 -->
+                                        <div>
+                                            <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">爱意称呼 &bull; ALIAS</label>
+                                            <input type="text" id="nameB" placeholder="输入 B 的称谓 (例如: 简意)" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none placeholder:text-venus-ink/20 tracking-wider font-light" required>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <!-- B方生日 -->
+                                            <div>
+                                                <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">降生日时 &bull; BIRTHDATE</label>
+                                                <input type="date" id="birthdateB" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none font-mono font-light text-center" required>
+                                            </div>
+                                            <!-- B方星座 -->
+                                            <div>
+                                                <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">命定星座 &bull; ZODIAC</label>
+                                                <select id="zodiacB" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none font-light" required>
+                                                    <option value="白羊座">白羊座 (Aries) - 火</option>
+                                                    <option value="金牛座">金牛座 (Taurus) - 土</option>
+                                                    <option value="双子座">双子座 (Gemini) - 风</option>
+                                                    <option value="巨蟹座">巨蟹座 (Cancer) - 水</option>
+                                                    <option value="狮子座" selected>狮子座 (Leo) - 火</option>
+                                                    <option value="处女座">处女座 (Virgo) - 土</option>
+                                                    <option value="天秤座">天秤座 (Libra) - 风</option>
+                                                    <option value="天蝎座">天蝎座 (Scorpio) - 水</option>
+                                                    <option value="射手座">射手座 (Sagittarius) - 火</option>
+                                                    <option value="摩羯座">摩羯座 (Capricorn) - 土</option>
+                                                    <option value="水瓶座">水瓶座 (Aquarius) - 风</option>
+                                                    <option value="双鱼座">双鱼座 (Pisces) - 水</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <!-- B方MBTI -->
+                                            <div>
+                                                <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">认知结构 &bull; MBTI TYPE</label>
+                                                <select id="mbtiB" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none font-light" required>
+                                                    <option value="ISTJ">ISTJ 物流师</option>
+                                                    <option value="ISFJ">ISFJ 守护者</option>
+                                                    <option value="INFJ">INFJ 提倡者</option>
+                                                    <option value="INTJ" selected>INTJ 建筑师</option>
+                                                    <option value="ISTP">ISTP 见赏家</option>
+                                                    <option value="ISFP">ISFP 探险家</option>
+                                                    <option value="INFP">INFP 调停者</option>
+                                                    <option value="INTP">INTP 思考者</option>
+                                                    <option value="ESTP">ESTP 企业家</option>
+                                                    <option value="ESFP">ESFP 表演者</option>
+                                                    <option value="ENFP">ENFP 竞选者</option>
+                                                    <option value="ENTP">ENTP 辩论家</option>
+                                                    <option value="ESFJ">ESFJ 执政官</option>
+                                                    <option value="ENFJ">ENFJ 教导者</option>
+                                                    <option value="ESTJ">ESTJ 总经理</option>
+                                                    <option value="ENTJ">ENTJ 指挥官</option>
+                                                </select>
+                                            </div>
+                                            <!-- B方LoveType -->
+                                            <div>
+                                                <label class="block text-[9px] text-venus-deep/50 mb-1 tracking-[0.2em] font-semibold uppercase">宿缘形态 &bull; LOVETYPE</label>
+                                                <select id="lovetypeB" class="w-full sacred-input rounded px-3 py-2 text-sm text-venus-ink focus:outline-none font-light" required>
+                                                    <option value="LAPE" selected>LAPE 狮子队长</option>
+                                                    <option value="LAPO">LAPO 完美变色龙</option>
+                                                    <option value="LARE">LARE 魅力平衡者</option>
+                                                    <option value="LARO">LARO 仰慕的前辈</option>
+                                                    <option value="LCPE">LCPE 隐藏宝宝</option>
+                                                    <option value="LCPO">LCPO 主角</option>
+                                                    <option value="LCRE">LCRE 隐藏宝宝 (LCRE版)</option>
+                                                    <option value="LCRO">LCRO 老板猫</option>
+                                                    <option value="FAPE">FAPE 最后的爱人</option>
+                                                    <option value="FAPO">FAPO 小恶魔天使</option>
+                                                    <option value="FARE">FARE 能干管理者</option>
+                                                    <option value="FARO">FARO 神秘生物</option>
+                                                    <option value="FCPE">FCPE 忠犬八公</option>
+                                                    <option value="FCPO">FCPO 爱情怪兽</option>
+                                                    <option value="FCRE">FCRE 聪明兔子</option>
+                                                    <option value="FCRO">FCRO 浪漫魔法师</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <!-- 经典星盘配置快速预载 -->
+                            <div class="flex flex-wrap justify-center items-center gap-3 pt-4 border-t border-venus-red/10 mt-6 text-[9px] tracking-wider relative z-10">
+                                <span class="text-venus-deep/40 uppercase font-serif">✦ Preset Astrolabes &bull; 命定配置预载:</span>
+                                <button type="button" onclick="loadSample(1)" class="px-2.5 py-0.5 border border-venus-red/25 rounded hover:border-venus-red transition-all font-light text-venus-deep/75">[ 隐藏宝宝 &times; 狮子队长 ]</button>
+                                <button type="button" onclick="loadSample(2)" class="px-2.5 py-0.5 border border-venus-red/25 rounded hover:border-venus-red transition-all font-light text-venus-deep/75">[ 聪明兔子 &times; 魅力平衡者 ]</button>
+                                <button type="button" onclick="loadSample(3)" class="px-2.5 py-0.5 border border-venus-red/25 rounded hover:border-venus-red transition-all font-light text-venus-deep/75">[ 爱情怪兽 &times; 完美变色龙 ]</button>
+                            </div>
+
+                            <div class="mt-6 flex justify-between items-center border-t border-venus-red/10 pt-5">
+                                <span class="text-[9px] text-venus-deep/40 italic tracking-[0.2em] font-light">“ 呼吸在此处共振，宿命之线于同屏内悄然编织 ”</span>
+                                <button type="button" onclick="submitProfiles()" class="altar-btn px-6 py-2.5 rounded text-[10px] font-semibold uppercase shadow-sm">
+                                    [ 呈递双人宿命并运算 / SUBMIT COGNITION ] ➔
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- ================= STATE 2: 维纳斯祈愿过渡页 ================= -->
+                        <section id="screen-transit" class="screen-transition epistle-paper classic-border corner-star w-full max-w-md rounded-2xl p-10 text-center shadow-2xl hidden">
+                            <div class="w-14 h-14 bg-venus-deep/10 border border-venus-gold/25 flex items-center justify-center rounded-full mx-auto animate-pulse">
+                                <span class="hr-icon-mail" aria-hidden="true"></span>
+                            </div>
+                            <div class="space-y-3">
+                                <h3 class="font-serif text-sm font-bold text-venus-deep tracking-[0.3em] uppercase">宿缘红丝线已投递至维纳斯神殿</h3>
+                                <p class="text-[11px] text-venus-deep/60 leading-relaxed max-w-xs mx-auto font-light tracking-widest">
+                                    命理和心律的波动已被因缘核心捕捉，我们正在为你们的宿命羁绊建立灵魂共鸣。
+                                </p>
+                            </div>
+
+                            <div class="pt-3 space-y-4">
+                                <button type="button" onclick="deliverRequest()" class="altar-btn px-10 py-3 text-[10px] font-bold uppercase rounded-full shadow-md">
+                                    [ 递交共鸣请求 / SEND REQUEST ]
+                                </button>
+                                <button type="button" onclick="returnFromHeartSync()" class="altar-btn px-8 py-2.5 text-[10px] font-semibold uppercase rounded-full">
+                                    [ 归还回廊 ]
+                                </button>
+                            </div>
+                            <p class="text-[9px] text-venus-deep/40 italic tracking-[0.25em] font-light">“ 窥视红线的宿命因缘，拂去岁月的尘封。”</p>
+                        </section>
+
+                        <!-- ================= STATE 3: 古典蜡封信件开启页 ================= -->
+                        <section id="screen-envelope" class="screen-transition epistle-paper classic-border corner-star w-full max-w-sm p-10 text-center hidden relative overflow-hidden">
+                            <div class="space-y-2 z-10 relative">
+                                <p class="font-playfair italic text-lg text-venus-deep tracking-wide">A Letter Devoted To Destiny</p>
+                                <p class="text-[10px] text-venus-deep/50 tracking-[0.25em] uppercase font-light">维纳斯的信笺已经送回，秘密已被线索封缄</p>
+                            </div>
+
+                            <!-- 交互中心：红线缠绕火漆印章 -->
+                            <div class="relative my-8 z-20 cursor-pointer group flex justify-center" onclick="meltSealAndOpen()">
+                                <div class="absolute inset-[-15px] w-28 h-28 rounded-full border border-venus-red/10 group-hover:scale-105 transition-all duration-700 pointer-events-none mx-auto"></div>
+                                
+                                <div id="wax-seal" class="w-16 h-16 bg-gradient-to-br from-venus-rose via-venus-red to-venus-deep rounded-full shadow-lg flex items-center justify-center relative transition-transform duration-500 hover:rotate-6 active:scale-95 border border-venus-gold/35 wax-seal-shadow">
+                                    <span class="text-venus-cream font-serif font-bold text-lg select-none">V</span>
+                                    <div id="seal-thread" class="absolute w-24 h-0.5 bg-venus-red top-8 left-[-16px] rotate-12 origin-center transition-all duration-500"></div>
+                                    <div id="seal-thread-2" class="absolute w-24 h-0.5 bg-venus-red top-8 left-[-16px] -rotate-12 origin-center transition-all duration-500"></div>
+                                </div>
+                            </div>
+
+                            <p class="text-[9px] text-venus-deep/40 tracking-[0.3em] uppercase animate-pulse z-10 font-light">
+                                ── 点击火漆印融断红线，解密信笺 ──
+                            </p>
+                        </section>
+
+                        <!-- ================= STATE 4: 星座层 (元素共鸣) ================= -->
+                        <section id="screen-act1" class="hr-act screen-transition epistle-paper classic-border corner-star w-full rounded-2xl p-8 md:p-10 shadow-2xl hidden">
+                            <div class="flex items-center justify-between border-b border-venus-gold/20 pb-4">
+                                <h3 class="font-serif text-xs md:text-sm font-bold text-venus-red tracking-[0.2em] flex items-center gap-2 uppercase">
+                                    <span class="text-[9px] font-mono bg-venus-parchment text-venus-red px-2 py-0.5 rounded border border-venus-red/20">ACT I</span>
+                                    第一页 &bull; 元素共鸣 (EMOTIONAL RESONANCE)
+                                </h3>
+                                <span class="text-[9px] text-venus-deep/40 italic font-playfair tracking-wider">“The whisper of initial stars”</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                                <div class="md:col-span-4 flex flex-col items-center justify-center p-6 bg-[#FCFAF2]/80 rounded border border-venus-gold/20 text-center relative overflow-hidden" id="act1-badge-card">
+                                    <div class="absolute top-1 left-1 text-[8px] text-venus-gold/20">✦</div>
+                                    <div class="absolute bottom-1 right-1 text-[8px] text-venus-gold/20">✦</div>
+                                    <div id="act1-glyphs" class="min-h-[3rem] flex items-center justify-center w-full"></div>
+                                    <div class="text-xs font-bold text-venus-deep uppercase tracking-widest font-serif" id="act1-combination">加载中...</div>
+                                    <div class="text-[8px] text-venus-deep/40 mt-2 tracking-widest uppercase font-mono">Vibe Frequency</div>
+                                </div>
+                                <div class="md:col-span-8 space-y-8">
+                                    <p id="act1-lead" class="hr-act-lead">数据加载中...</p>
+                                    <div class="space-y-1.5">
+                                        <h4 class="text-[11px] font-bold text-venus-red tracking-[0.2em] flex items-center gap-1.5 uppercase" id="act1-title-1">
+                                            <span class="hr-mark" aria-hidden="true"></span> 初始氛围与吸引引力
+                                        </h4>
+                                        <div id="act1-atmosphere" class="hr-lines"></div>
+                                    </div>
+                                    
+                                    <div class="bound-line my-1"></div>
+
+                                    <div class="space-y-1.5">
+                                        <h4 class="text-[11px] font-bold text-venus-red tracking-[0.2em] flex items-center gap-1.5 uppercase" id="act1-title-2">
+                                            <span class="hr-mark" aria-hidden="true"></span> 情绪共振节奏
+                                        </h4>
+                                        <div id="act1-rhythm" class="hr-lines"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="pt-6 border-t border-venus-red/10 flex justify-end">
+                                <button type="button" onclick="goToAct2()" class="altar-btn px-6 py-2.5 text-[10px] font-semibold uppercase rounded-full shadow-md">
+                                    [ 翻开下一页 &bull; 认知通路 / COGNITIVE ] ➔
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- ================= STATE 5: MBTI层 (认知结构) ================= -->
+                        <section id="screen-act2" class="hr-act screen-transition epistle-paper classic-border corner-star w-full rounded-2xl p-8 md:p-10 shadow-2xl hidden">
+                            <div class="flex items-center justify-between border-b border-venus-gold/20 pb-4">
+                                <h3 class="font-serif text-xs md:text-sm font-bold text-venus-red tracking-[0.2em] flex items-center gap-2 uppercase">
+                                    <span class="text-[9px] font-mono bg-venus-parchment text-venus-red px-2 py-0.5 rounded border border-venus-red/20">ACT II</span>
+                                    第二页 &bull; 认知结构 (COGNITIVE PATHWAYS)
+                                </h3>
+                                <span class="text-[9px] text-venus-deep/40 italic font-playfair tracking-wider">“Dialogue within boundaries”</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="p-5 bg-[#FCFAF2]/80 rounded border border-venus-gold/20 space-y-3 relative" id="act2-card-A">
+                                    <div class="absolute top-1 right-2 text-[8px] text-venus-gold/20">✦</div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[11px] font-mono text-venus-red tracking-wider">SUBJECT A: <span id="act2-mbtiA-name" class="font-bold">INFP 调停者</span></span>
+                                        <span class="text-[8px] bg-venus-parchment text-venus-red px-2.5 py-0.5 rounded border border-venus-red/15 font-mono tracking-widest" id="act2-mbtiA-core">Fi-Ne</span>
+                                    </div>
+                                    <div class="text-[10px] font-bold text-venus-deep/40 uppercase tracking-widest" id="act2-label-A">恋爱行为特征 &bull; BEHAVIORS：</div>
+                                    <div id="act2-mbtiA-desc" class="hr-lines"></div>
+                                </div>
+
+                                <div class="p-5 bg-[#FCFAF2]/80 rounded border border-venus-gold/20 space-y-3 relative" id="act2-card-B">
+                                    <div class="absolute top-1 right-2 text-[8px] text-venus-gold/20">✦</div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-[11px] font-mono text-venus-deep tracking-wider">SUBJECT B: <span id="act2-mbtiB-name" class="font-bold">INTJ 建筑师</span></span>
+                                        <span class="text-[8px] bg-venus-parchment text-venus-deep px-2.5 py-0.5 rounded border border-venus-red/15 font-mono tracking-widest" id="act2-mbtiB-core">Ni-Te</span>
+                                    </div>
+                                    <div class="text-[10px] font-bold text-venus-deep/40 uppercase tracking-widest" id="act2-label-B">恋爱行为特征 &bull; BEHAVIORS：</div>
+                                    <div id="act2-mbtiB-desc" class="hr-lines"></div>
+                                </div>
+                            </div>
+
+                            <div class="p-5 bg-venus-red/5 rounded border border-venus-red/15 space-y-3 relative" id="act2-conflict-card">
+                                <div class="absolute top-1 right-2 text-[8px] text-venus-red/10">✦</div>
+                                <h4 class="text-[11px] font-bold text-venus-red tracking-wider flex items-center gap-2 uppercase">
+                                    <span><span class="hr-mark-diamond" aria-hidden="true"></span> 认知对立与冲突引信 &bull; COGNITIVE FRICTIONS</span>
+                                </h4>
+                                <div id="act2-conflict" class="hr-lines"></div>
+                            </div>
+
+                            <div class="pt-6 border-t border-venus-red/10 flex justify-end">
+                                <button type="button" onclick="goToAct3()" class="altar-btn px-6 py-2.5 text-[10px] font-semibold uppercase rounded-full shadow-md">
+                                    [ 翻开核心层 &bull; 宿因角色 / KINETICS ] ➔
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- ================= STATE 6: LoveType核心层 (关系角色) ================= -->
+                        <section id="screen-act3" class="hr-act screen-transition epistle-paper classic-border corner-star w-full rounded-2xl p-8 md:p-10 shadow-2xl hidden relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-venus-rose/5 rounded-full filter blur-xl pointer-events-none"></div>
+
+                            <div class="flex items-center justify-between border-b border-venus-gold/20 pb-4">
+                                <h3 class="font-serif text-xs md:text-sm font-bold text-venus-red tracking-[0.2em] flex items-center gap-2 uppercase">
+                                    <span class="text-[9px] font-mono bg-venus-parchment text-venus-red px-2 py-0.5 rounded border border-venus-red/20">ACT III</span>
+                                    第三页 &bull; 关系角色与动力 (RELATIONSHIP KINETICS)
+                                </h3>
+                                <span class="text-[9px] text-venus-deep font-mono tracking-widest">WEIGHT: 80% [宿命主导层]</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                <!-- 侧边动力状态 -->
+                                <div class="md:col-span-4 space-y-4">
+                                    <div class="p-4 bg-[#FCFAF2]/80 rounded border border-venus-gold/20 text-center space-y-2 relative" id="act3-dyn-card-1">
+                                        <span class="text-[9px] text-venus-deep/40 block uppercase tracking-widest font-serif" id="act3-dyn-label-1">动力模式 &bull; DYNAMICS</span>
+                                        <div id="act3-dynamic-pattern" class="text-xs font-bold text-venus-deep">加载中...</div>
+                                    </div>
+
+                                    <div class="p-4 bg-[#FCFAF2]/80 rounded border border-venus-gold/20 text-center space-y-2 relative" id="act3-dyn-card-2">
+                                        <span class="text-[9px] text-venus-deep/40 block uppercase tracking-widest font-serif" id="act3-dyn-label-2">张力拉扯 &bull; TENSION</span>
+                                        <div class="flex items-center justify-center gap-2">
+                                            <div id="tension-bar" class="flex gap-0.5 w-full max-w-[120px] h-2 bg-venus-parchment rounded-full overflow-hidden">
+                                                <div class="bg-venus-red h-full animate-pulse" style="width: 70%"></div>
+                                            </div>
+                                            <span id="tension-value" class="text-xs text-venus-red font-mono font-bold">7/10</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 角色细节 -->
+                                <div class="md:col-span-8 space-y-4 text-sm">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div class="p-4 bg-[#FCFAF2]/80 rounded border border-venus-red/15 relative" id="act3-role-card-A">
+                                            <div class="absolute top-1 right-2 text-[8px] text-venus-red/10">✦</div>
+                                            <span class="text-xs text-venus-red font-bold block mb-1">A方定位: <span id="act3-roleA-title">...</span></span>
+                                            <p class="hr-act-note">特质</p><p id="act3-roleA-trait" class="text-[10px] text-venus-deep/65 mb-2"></p><p class="hr-act-note">行为</p><div id="act3-roleA-behavior" class="hr-lines"></div>
+                                        </div>
+                                        <div class="p-4 bg-[#FCFAF2]/80 rounded border border-venus-red/15 relative" id="act3-role-card-B">
+                                            <div class="absolute top-1 right-2 text-[8px] text-venus-gold/10">✦</div>
+                                            <span class="text-xs text-venus-deep font-bold block mb-1">B方定位: <span id="act3-roleB-title">...</span></span>
+                                            <p class="hr-act-note">特质</p><p id="act3-roleB-trait" class="text-[10px] text-venus-deep/65 mb-2"></p><p class="hr-act-note">行为</p><div id="act3-roleB-behavior" class="hr-lines"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 触发边界 -->
+                                    <div class="space-y-2">
+                                        <h4 class="text-[11px] font-bold text-venus-deep/60 flex items-center gap-1.5 uppercase tracking-wider" id="act3-trigger-title">
+                                            <span><span class="hr-mark-ring" aria-hidden="true"></span> 触发敏感死区 &bull; TRIGGER FIELDS</span>
+                                        </h4>
+                                        <div class="p-4 bg-venus-red/5 border border-venus-red/20 rounded text-xs space-y-2 text-venus-deep/80 font-light" id="act3-trigger-card">
+                                            <p><strong>A方敏感点：</strong><span id="act3-triggerA">...</span></p>
+                                            <p><strong>B方敏感点：</strong><span id="act3-triggerB">...</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-6 bg-gradient-to-r from-transparent to-venus-red/5 rounded border border-venus-gold/15 space-y-3" id="act3-narrative-card">
+                                <h4 class="text-[11px] font-bold text-venus-deep tracking-widest font-serif flex items-center gap-2 uppercase" id="act3-narrative-title">
+                                    <span><span class="hr-mark-ring" aria-hidden="true"></span> 关系主导与反馈依赖动态 &bull; DOMINANCE-DEPENDENCY</span>
+                                </h4>
+                                <div id="act3-push-pull" class="hr-lines"></div>
+                            </div>
+
+                            <div class="pt-6 border-t border-venus-red/10 flex justify-end">
+                                <button type="button" onclick="goToAct4()" class="altar-btn px-6 py-2.5 text-[10px] font-semibold uppercase rounded-full shadow-md">
+                                    [ 翻开修正层 &bull; 时空坐标 / TEMPORAL ] ➔
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- ================= STATE 7: 生日层 (命运修正) ================= -->
+                        <section id="screen-act4" class="hr-act screen-transition epistle-paper classic-border corner-star w-full rounded-2xl p-8 md:p-10 shadow-2xl hidden">
+                            <div class="flex items-center justify-between border-b border-venus-gold/20 pb-4">
+                                <h3 class="font-serif text-xs md:text-sm font-bold text-venus-red tracking-[0.2em] flex items-center gap-2 uppercase">
+                                    <span class="text-[9px] font-mono bg-venus-parchment text-venus-red px-2 py-0.5 rounded border border-venus-red/20">ACT IV</span>
+                                    第四页 &bull; 命运时序修正 (TEMPORAL SYNCHRONICITY)
+                                </h3>
+                                <span class="text-[9px] text-venus-deep/40 italic font-playfair tracking-wider">“The clock of seasons”</span>
+                            </div>
+
+                            <div class="flex flex-col md:flex-row gap-6 items-center">
+                                <div class="text-center p-6 bg-[#FCFAF2]/80 rounded border border-venus-gold/20 shrink-0 w-full md:w-48 transition-colors duration-1000" id="act4-node-card">
+                                    <span class="text-[9px] text-venus-deep/40 block mb-1 uppercase tracking-widest font-mono" id="act4-node-label">Temporal Node</span>
+                                    <span id="act4-fate-title" class="text-xs font-bold font-serif text-venus-deep tracking-wider">秋分双星</span>
+                                    <span id="act4-fate-dates" class="text-[10px] text-venus-red block mt-1 font-mono font-bold">10.05 &times; 11.23</span>
+                                </div>
+                                <div class="space-y-2">
+                                    <h4 class="text-[11px] font-bold text-venus-deep/80 uppercase tracking-widest" id="act4-text-title">命运时钟纠缠与共时性修饰</h4>
+                                    <div id="act4-fate-desc" class="hr-lines"></div>
+                                </div>
+                            </div>
+
+                            <div class="pt-6 border-t border-venus-red/10 flex justify-end">
+                                <button type="button" onclick="goToFinal()" class="altar-btn px-8 py-3 text-[10px] font-bold uppercase rounded-full shadow-lg">
+                                    [ 启动最终因缘结算 / EVALUATE ] ➔
+                                </button>
+                            </div>
+                        </section>
+
+                        <!-- ================= STATE 8: 最终结算 (命运揭示) ================= -->
+                        <section id="screen-final" class="screen-transition w-full max-w-xl epistle-paper classic-border corner-star rounded-3xl p-6 md:p-12 text-center hidden relative overflow-hidden">
+                            <!-- 羊皮纸/奶油色古典信笺真实实体质感 -->
+                            <div id="final-parchment" class="absolute inset-0 opacity-100 parchment pointer-events-none z-0"></div>
+
+                            <div class="relative z-10 space-y-8">
+                                <!-- 顶端仪式呢喃 -->
+                                <span id="final-header-text" class="text-[9px] uppercase tracking-[0.35em] text-venus-red/60 font-serif block">✧ The Final Symphony of Destiny ✧</span>
+
+                                <!-- 命运爱心蓄能动画 (SVG动态渐变填充) -->
+                                <div class="relative w-40 h-40 mx-auto flex items-center justify-center">
+                                    <svg id="final-heart" class="w-full h-full filter drop-shadow-[0_0_8px_rgba(179,36,60,0.2)]" viewBox="0 0 24 24">
+                                        <defs>
+                                            <linearGradient id="heartGradient" x1="0" y1="1" x2="0" y2="0">
+                                                <stop offset="0%" stop-color="#540D1A"/>
+                                                <stop id="grad-stop" offset="0%" stop-color="#B3243C"/>
+                                                <stop id="grad-empty" offset="0%" stop-color="#F5EFEB"/>
+                                            </linearGradient>
+                                        </defs>
+                                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="url(#heartGradient)" stroke="#B3243C" stroke-width="0.3" />
+                                    </svg>
+                                    
+                                    <!-- 动态算力百分比 -->
+                                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                        <span id="display-percent" class="font-serif text-3xl font-semibold text-venus-deep select-none tracking-widest">0%</span>
+                                        <span id="display-percent-sub" class="text-[8px] text-venus-deep/60 tracking-[0.25em] uppercase font-serif block mt-1">Resonance</span>
+                                    </div>
+                                </div>
+
+                                <!-- 最终因缘结果 -->
+                                <div id="final-result-details" class="opacity-0 transition-opacity duration-1000 space-y-6 max-w-xl mx-auto">
+                                    <div class="inline-block border-b border-venus-red/20 pb-2 px-6">
+                                        <span id="relationship-title" class="font-serif text-base md:text-lg font-bold text-venus-red tracking-[0.15em]">...</span>
+                                    </div>
+                                    <div id="relationship-summary" class="hr-lines text-xs md:text-sm text-venus-deep/85 italic font-light max-w-lg mx-auto"></div>
+                                    <div class="w-16 h-[1px] bg-venus-red/15 mx-auto my-3"></div>
+                                    <div class="flex justify-center gap-4 text-[10px] font-serif text-venus-red/70 tracking-wider">
+                                        <span id="result-badgeA">...</span>
+                                        <span class="text-venus-gold font-light">&times;</span>
+                                        <span id="result-badgeB">...</span>
+                                    </div>
+                                </div>
+
+                                <!-- 底部重校因缘按钮 -->
+                                <div id="final-actions" class="opacity-0 transition-opacity duration-1000 pt-2">
+                                    <button type="button" onclick="returnFromHeartSync()" class="altar-btn px-6 py-2.5 text-[10px] font-bold uppercase rounded-full shadow-md mr-3">[ 归 还 回 廊 ]</button>
+                                    <button type="button" onclick="resetEngine()" class="altar-btn px-8 py-2.5 text-[10px] font-bold uppercase rounded-full shadow-md">
+                                        [ 重新拨动命运轮盘 / RESET ] ↺
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                    </div>
+
+                    <!-- 命运因缘渲染等待器 -->
+                    <div id="loader" class="hidden text-center my-24 space-y-6">
+                        <div class="hr-loader-ring">
+                            <div class="loader-spinner" aria-hidden="true"></div>
+                            <div class="loader-heart-wrap">
+                                <svg class="loader-heart-svg" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <p class="font-serif text-[10px] tracking-[0.35em] text-venus-red/70 animate-pulse uppercase">DREAM CONNECTION... 正在建立因缘链接</p>
+                            <p class="text-[9px] text-venus-deep/40 italic tracking-[0.2em] block">“ 宿命红丝线正跨越时空阻碍，寸寸显影 ”</p>
+                        </div>
+                    </div>
+
+                </div>
+        </div>
+    </div>
+
+        <div id="hermes-trans" class="custom-overlay hermes-overlay">
+        <div class="hermes-envelope"></div>
+        <div class="hermes-text">WHISPER LOADING . . .</div>
+        <div class="hermes-sub-text">听 取 众 神 传 递 的 密 语</div>
+        <div class="hermes-feedback-hint">正在感应神谕 . . .</div>
+        <button class="return-btn" style="color: var(--hermes-main); border-color: var(--hermes-main);" onclick="startDivinationStage()">[ 接 受 神 谕 ]</button>
+    </div>
+
+    <div id="venus-trans" class="custom-overlay venus-overlay">
+        <div class="heart-beat">❤</div>
+        <div class="venus-text">LOVE WEAVING . . .</div>
+        <div class="venus-sub-text">窥 视 红 线 的 宿 命 因 缘</div>
+        <div class="venus-feedback-hint">正在感应缘分 . . .</div>
+        <button class="return-btn" onclick="goToVenusHub()">[ 确 认 羁 绊 ]</button>
+    </div>
+
+    <div id="divine-card-portal" aria-hidden="true"></div>
+    <div id="divination-stage">
+        <div class="exit-divine-btn" onclick="closeDivinationAndReturn()">✕ 结束仪式 (EXIT)</div>
+        <canvas id="divine-canvas"></canvas>
+        <div id="divine-curtain"></div>
+        <div class="divine-ui">
+            <div class="divine-hint-bar">
+                <span id="gesture-label">—— 灵魂同步中 ——</span>
+                <span id="gesture-sublabel">请保持手部出现在画面中</span>
+            </div>
+            <div class="card-row" id="divine-card-row"></div>
+            <div id="ritual-aura">
+                <svg id="ritual-progress" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45"></circle>
+                </svg>
+                <div style="position: absolute; font-size: 0.6rem; color: var(--vn-accent); letter-spacing: 2px;">祈愿中</div>
+            </div>
+        </div>
+        <div id="cam-preview"><video id="input-video" playsinline></video></div>
+    </div>
+
+    <div id="page1" class="page active">
+        <div class="tarot-card">
+            <div class="vertical-subtitle">運命の輪は、静かに回り出す</div>
+            <div id="card-placeholder" class="card-placeholder"></div>
+            <img id="display-fragment" src="" alt="" class="main-img">
+        </div>
+        <div class="title-group">
+            <h1 class="main-title">愿望会被听见吗？</h1>
+            <p style="margin-top: 10px; font-size: 0.75rem; opacity: 0.5; letter-spacing: 5px;">DIVINATION & STORY</p>
+        </div>
+        <div class="menu-list">
+            <button class="mystic-btn" onclick="triggerDreamTransition()">窥视命运 (Start)</button>
+            <label for="fragment-upload" class="mystic-btn">记忆碎片 (Upload)</label>
+            <input type="file" id="fragment-upload" accept="image/*" onchange="processMemoryFragment(event)">
+            <p class="upload-hint">✧ 上传与之共鸣的照片，可增强指引灵力 ✧</p>
+            <button class="mystic-btn" onclick="exitApp()">离开隙间 (Exit)</button>
+        </div>
+    </div>
+
+    <div id="dream-transition">
+        <div style="text-align: center;">
+            <div style="width: 120px; height: 120px; border: 1px solid var(--vn-accent); border-radius: 50%; margin: 0 auto 30px; display: flex; align-items: center; justify-content: center; animation: rotate 10s linear infinite;">
+                <span style="color: var(--vn-accent); font-size: 1.5rem;">✦</span>
+            </div>
+            <p style="color: var(--vn-accent); font-size: 0.8rem; letter-spacing: 8px; margin-left: 8px;">DREAM LOADING...</p>
+        </div>
+        <div class="loading-tip">正在建立灵魂链接...</div>
+    </div>
+
+    <div id="page2" class="page">
+        <div class="vn-ui-container">
+            <div class="vn-name-plate">耶耶大师</div>
+            <div class="vn-box" id="vn-click-zone">
+                <div class="skip-btn" id="vn-skip-btn">SKIP ✧</div>
+                <div id="typewriter" class="vn-text"></div>
+                <div class="click-hint" id="vn-click-hint">CLICK TO CONTINUE ✦</div>
+                <div id="dialog-options" style="display: none; margin-top: 30px; justify-content: flex-end; gap: 20px;">
+                    <button class="mystic-btn" style="padding: 8px 30px; font-size: 0.9rem;" onclick="goToPage(3)">正是如此</button>
+                    <button id="btn-no" class="mystic-btn" style="padding: 8px 30px; font-size: 0.9rem;">并非此愿</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="page3" class="page">
+        <div class="hermes-decor-container" id="hermes-decor">
+            <div class="hermes-ring hermes-ring-1"></div>
+            <div class="hermes-ring hermes-ring-2"></div>
+            <div class="hermes-ring hermes-ring-3"></div>
+        </div>
+        <h2 style="margin-bottom: 50px; letter-spacing: 8px; color: var(--color-cream);">选择你的启示</h2>
+        <div class="menu-list">
+            <button class="mystic-btn" onclick="showCustomTrans('hermes-trans')">赫尔墨斯的私语 (今日)</button>
+            <button class="mystic-btn" onclick="showCustomTrans('venus-trans')">维纳斯的红线 (恋爱)</button>
+            <button class="mystic-btn" style="border: none; font-size: 0.7rem; opacity: 0.4;" onclick="location.reload()">[ 归还意识至现世 ]</button>
+        </div>
+    </div>
+
+    <div id="page4" class="page">
+        <div class="exit-venus-btn" onclick="returnToPage3FromVenus()">✕ 离开回廊 (BACK)</div>
+        <div class="title-group" style="margin-bottom: 60px;">
+            <h2 style="color: var(--love-deep); letter-spacing: 12px; margin-bottom: 10px;">维纳斯的秘密回廊</h2>
+            <p style="font-size: 0.7rem; color: var(--love-main); letter-spacing: 4px; opacity: 0.8;">VENUS'S SECRET SALON</p>
+        </div>
+        
+        <div class="love-hub-container">
+            <div class="love-option-card" onclick="startMeditationFlow()">
+                <span class="love-option-title">恋心轨迹窥测</span>
+                <span class="love-option-sub">Action Forecast</span>
+            </div>
+            <div class="love-option-card" onclick="startHeartSyncFlow()">
+                <span class="love-option-title">心跳共振频率</span>
+                <span class="love-option-sub">Sync Analysis</span>
+            </div>
+        </div>
+
+        <button class="mystic-btn" style="margin-top: 60px; border-color: var(--love-main); color: var(--love-main); font-size: 0.7rem; max-width: 200px;" onclick="goToPage(3)">[ 返回意识间 ]</button>
+    </div>
+
+    <script>
+        const DB_NAME = 'MysticMemoryDB';
+        const STORE_NAME = 'Fragments';
+        let db;
+        const lines = ["汪...咳咳","在这个被观测到的瞬间，", "世界线开始为你收敛。", "这便是你所追求的真相吗？"];
+        let currentLineIndex = 0;
+        let isTyping = false;
+        let currentTypingTimer = null;
+        let canAdvance = false;
+
+        let faceMesh;
+        let hands; // Make hands global to avoid undefined errors in frame loop
+        let camera;
+        let isMeditating = false;
+        let eyesClosedStartTime = 0;
+        let meditationCountdown = 5;
+        let colorMixStack = [[253, 253, 245]]; // 初始米白色 RGB
+        let currentMixedColor = "rgb(253, 253, 245)";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            var boot = function () {
+                if (typeof applyTailwindConfig === 'function') applyTailwindConfig();
+                requestCameraPermissionEarly();
+                initIndexedDB();
+                initFaceMesh();
+                if (window.MeditationRitual) {
+                    MeditationRitual.init({
+                        soundBase: {
+                            heartbeat: 'assets/sounds/heartbeat',
+                            chime: 'assets/sounds/wind_chime'
+                        }
+                    }).catch(function () { /* 无音频时仍可闭眼计时 */ });
+                }
+            };
+            if (window.depsReady && typeof window.depsReady.then === 'function') {
+                window.depsReady.then(boot).catch(function (err) {
+                    console.error(err);
+                    boot();
+                    showToast('部分在线资源未加载，占卜手势可能不可用。可运行「下载离线依赖.ps1」后刷新。');
+                });
+            } else {
+                boot();
+            }
+        });
+
+        // Fix: Added missing function for early camera permission request
+        async function requestCameraPermissionEarly() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: 'user', width: 640, height: 480 }
+                });
+                stream.getTracks().forEach(function (t) { t.stop(); });
+                console.log("Camera permission granted early (stream released for MediaPipe).");
+            } catch (err) {
+                console.warn("Camera permission denied or not available:", err);
+                showToast("仪式需要访问相机以感应灵魂...");
+            }
+        }
+
+        function initIndexedDB() {
+            const request = indexedDB.open(DB_NAME, 1);
+            request.onupgradeneeded = (e) => {
+                db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+            };
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                loadSavedFragment();
+            };
+        }
+
+        function initFaceMesh() {
+            if (typeof FaceMesh === 'undefined') {
+                console.warn('[FaceMesh] 未加载，冥想闭眼检测不可用');
+                return;
+            }
+            faceMesh = new FaceMesh({
+                locateFile: typeof mediapipeLocateFile === 'function'
+                    ? mediapipeLocateFile('face_mesh')
+                    : (file) => 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/' + file
+            });
+            faceMesh.setOptions({
+                maxNumFaces: 1,
+                refineLandmarks: true,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            faceMesh.onResults(onFaceResults);
+        }
+
+        let visionPipelineActive = false;
+
+        function stopVisionPipeline() {
+            visionPipelineActive = false;
+            if (camera && typeof camera.stop === 'function') {
+                try { camera.stop(); } catch (e) { /* ignore */ }
+            }
+            camera = null;
+            hands = null;
+        }
+
+        /** 启动 MediaPipe 摄像头帧循环（手势 + 冥想时 FaceMesh），可重复调用且仅初始化一次 */
+        function startHandTracking() {
+            if (visionPipelineActive && camera) return;
+            if (typeof Hands === 'undefined' || typeof Camera === 'undefined') {
+                showToast('手势库未加载，请检查网络或运行「下载离线依赖.ps1」后刷新');
+                return;
+            }
+            const video = document.getElementById('input-video');
+            if (!video) {
+                console.warn('[vision] input-video not found');
+                return;
+            }
+            if (camera) {
+                try { camera.stop(); } catch (e) { /* ignore */ }
+            }
+
+            hands = new Hands({
+                locateFile: typeof mediapipeLocateFile === 'function'
+                    ? mediapipeLocateFile('hands')
+                    : (file) => 'https://cdn.jsdelivr.net/npm/@mediapipe/hands/' + file
+            });
+            hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
+            hands.onResults(handleHandResults);
+
+            camera = new Camera(video, {
+                onFrame: async () => {
+                    // Fix: Add null checks to ensure MediaPipe is initialized before sending frames
+                    if (hands) {
+                        await hands.send({image: video});
+                    }
+                    if (isMeditating && faceMesh) {
+                        await faceMesh.send({image: video});
+                    }
+                },
+                width: 640, height: 480
+            });
+            camera.start();
+            visionPipelineActive = true;
+        }
+
+        function onFaceResults(results) {
+            const indicator = document.getElementById('face-status-indicator');
+            if (!isMeditating) {
+                indicator.innerText = "";
+                return;
+            }
+
+            if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                const landmarks = results.multiFaceLandmarks[0];
+                // 简化 EAR (Eye Aspect Ratio) 计算: 取上下眼睑中点距离
+                // 左眼: 159, 145 | 右眼: 386, 374
+                const leftDist = Math.abs(landmarks[159].y - landmarks[145].y);
+                const rightDist = Math.abs(landmarks[386].y - landmarks[374].y);
+                
+                const isClosed = leftDist < 0.015 && rightDist < 0.015;
+                
+                if (isClosed) {
+                    indicator.innerText = "● 灵魂已闭目感应中...";
+                    if (window.MeditationRitual) MeditationRitual.notifyEyesClosed();
+                    tickMeditation();
+                } else {
+                    indicator.innerText = "○ 请闭上双眼";
+                    if (window.MeditationRitual) MeditationRitual.notifyEyesOpen();
+                    resetMeditationTick();
+                }
+            } else {
+                indicator.innerText = "○ 未感应到面容";
+                if (window.MeditationRitual) MeditationRitual.notifyEyesOpen();
+                resetMeditationTick();
+            }
+        }
+
+        function startMeditationFlow() {
+            meditationFinished = false;
+            isMeditating = true;
+            meditationCountdown = 5;
+            eyesClosedStartTime = 0;
+            if (!faceMesh) initFaceMesh();
+            startHandTracking();
+            if (window.MeditationRitual) MeditationRitual.enterMeditation();
+            goToPage('meditation');
+            showToast("✦ 进入冥想状态 ✦");
+        }
+
+        function tickMeditation() {
+            const timerEl = document.getElementById('meditation-timer');
+            timerEl.classList.add('show');
+            
+            if (!eyesClosedStartTime) {
+                eyesClosedStartTime = Date.now();
+            }
+
+            const elapsed = Math.floor((Date.now() - eyesClosedStartTime) / 1000);
+            const remaining = 5 - elapsed;
+
+            if (remaining !== parseInt(timerEl.innerText)) {
+                timerEl.innerText = Math.max(0, remaining);
+                timerEl.style.opacity = (remaining % 2 === 0) ? "0.4" : "1";
+            }
+
+            if (remaining <= 0) {
+                finishMeditation();
+            }
+        }
+
+        function resetMeditationTick() {
+            eyesClosedStartTime = 0;
+            const timerEl = document.getElementById('meditation-timer');
+            timerEl.innerText = "5";
+            timerEl.classList.remove('show');
+        }
+
+        function exitMeditation() {
+            meditationFinished = false;
+            isMeditating = false;
+            if (window.MeditationRitual) MeditationRitual.exitMeditation();
+            resetMeditationTick();
+            // 显式清空面部感应状态文字
+            const indicator = document.getElementById('face-status-indicator');
+            if (indicator) indicator.innerText = "";
+            
+            // 确保隐藏已锁定的提示
+            document.getElementById('meditation-locked').style.opacity = "0";
+            // 返回维纳斯回廊 (Page 4)
+            goToPage(4);
+            showToast("✦ 意识已脱离冥想 ✦");
+        }
+
+        let meditationFinished = false;
+        function finishMeditation() {
+            if (meditationFinished) return;
+            meditationFinished = true;
+            isMeditating = false;
+            if (window.MeditationRitual) MeditationRitual.onVisualSuccess();
+            // 显式清空面部感应状态文字
+            const indicator = document.getElementById('face-status-indicator');
+            if (indicator) indicator.innerText = "";
+            
+            document.getElementById('meditation-locked').style.opacity = "1";
+            setTimeout(() => {
+                goToPage('q1');
+            }, 2500);
+        }
+
+        function addColorToMix(rgb) {
+            colorMixStack.push(rgb);
+            updateBackgroundColor();
+        }
+
+        function undoColorMix() {
+            if (colorMixStack.length > 1) {
+                colorMixStack.pop();
+                updateBackgroundColor();
+            }
+        }
+
+        function updateBackgroundColor() {
+            // 计算所有选定颜色的平均值实现融合
+            let r=0, g=0, b=0;
+            colorMixStack.forEach(c => {
+                r += c[0]; g += c[1]; b += c[2];
+            });
+            const count = colorMixStack.length;
+            const avgR = Math.round(r/count);
+            const avgG = Math.round(g/count);
+            const avgB = Math.round(b/count);
+            
+            currentMixedColor = `rgb(${avgR}, ${avgG}, ${avgB})`;
+            const pageQ1 = document.getElementById('page-q1');
+            pageQ1.style.backgroundColor = currentMixedColor;
+
+            // 增量开发：基于亮度计算最佳对比色
+            // 使用 W3C 亮度公式：(R*299 + G*587 + B*114) / 1000
+            const brightness = (avgR * 299 + avgG * 587 + avgB * 114) / 1000;
+            const titleEl = pageQ1.querySelector('h2');
+            const undoBtn = pageQ1.querySelector('.undo-btn');
+            
+            // 如果亮度较低（深色背景）或颜色与粉色过于接近，切换为高对比度颜色
+            if (brightness < 160) {
+                // 深色或深冷色背景，使用浅色文字
+                titleEl.style.color = "#ffffff";
+                titleEl.style.textShadow = "0 2px 4px rgba(0,0,0,0.3)";
+                undoBtn.style.color = "#ffffff";
+                undoBtn.style.borderColor = "#ffffff";
+            } else {
+                // 浅色背景，恢复原始粉色调
+                titleEl.style.color = "var(--love-deep)";
+                titleEl.style.textShadow = "none";
+                undoBtn.style.color = "var(--love-main)";
+                undoBtn.style.borderColor = "var(--love-main)";
+            }
+        }
+
+        function confirmColorQ1() {
+            if (typeof window.logUserInput === 'function') {
+                window.logUserInput('color_q1_confirm', {
+                    colorStack: colorMixStack.slice(),
+                    mixedColor: typeof currentMixedColor !== 'undefined' ? currentMixedColor : ''
+                });
+            }
+            showToast("✦ 色彩基调已确立 ✦");
+            document.body.classList.add('lovesign-active');
+            goToPage('lovesign');
+        }
+
+        function startHeartSyncFlow() {
+            showToast("✦ 心跳共振祭坛已开启 ✦");
+            document.body.classList.add('heartrate-active');
+            goToPage('heartrate');
+            if (typeof window.initHeartRatePage === 'function') {
+                window.initHeartRatePage();
+            }
+        }
+
+        function returnFromHeartSync() {
+            document.body.classList.remove('heartrate-active');
+            goToPage(4);
+            showToast("✦ 已归还维纳斯回廊 ✦");
+        }
+
+        function returnFromLoveSign() {
+            if (typeof window.lovesignStop === 'function') {
+                window.lovesignStop();
+            }
+            document.body.classList.remove('lovesign-active');
+            goToPage(4);
+            showToast("✦ 已归还维纳斯回廊 ✦");
+        }
+
+        const VALID_EXPRESSIONS = [
+            "开心", "微笑", "大笑","憋笑", "发呆", "专注", "冷静", "沉默", 
+            "克制", "紧张", "疏离", "放空", "温柔", "害羞", "忧郁", "凝视"
+        ];
+
+        function processExpression() {
+            const inputEl = document.getElementById('expression-input');
+            const word = inputEl.value.trim();
+            const errorEl = document.getElementById('expression-error');
+            const q2Page = document.getElementById('page-q2');
+            
+            if (!word || !VALID_EXPRESSIONS.some(v => word.includes(v))) {
+                errorEl.style.opacity = '1';
+                inputEl.style.borderBottomColor = '#ff4d4d';
+                setTimeout(() => { errorEl.style.opacity = '0'; }, 3000);
+                return;
+            }
+
+            // 1. 隐藏表单
+            document.getElementById('expression-form').style.opacity = '0';
+            setTimeout(() => { document.getElementById('expression-form').style.display = 'none'; }, 500);
+
+            // 2. 根据表情词触发动画
+            let atmosphere = "default";
+            if (["开心", "微笑", "大笑", "温柔"].some(v => word.includes(v))) {
+                atmosphere = "joy";
+                q2Page.className = "page active bg-state-pink";
+                startLoveAtmosphere(); // 复用爱心跳动逻辑
+            } else if (["冷静", "专注", "疏离"].some(v => word.includes(v))) {
+                atmosphere = "calm";
+                q2Page.className = "page active bg-state-blue";
+            } else if (["发呆", "放空", "沉默"].some(v => word.includes(v))) {
+                atmosphere = "void";
+                q2Page.className = "page active bg-state-beige";
+                createDust(); // 复用粒子逻辑
+            } else if (["紧张", "害羞", "克制"].some(v => word.includes(v))) {
+                atmosphere = "tension";
+                q2Page.className = "page active bg-state-beige";
+                const line = document.getElementById('red-line-element');
+                line.classList.add('active');
+                // 模拟心跳加速：暂时改变全局爱心粒子速度（如果存在）
+            } else {
+                atmosphere = "default";
+                q2Page.className = "page active bg-state-beige";
+                // 默认：粉色环形线与粒子（利用已有CSS变量）
+            }
+
+            // 3. 生成并显示维纳斯文本
+            setTimeout(() => {
+                showVenusAtmosphereText(word, atmosphere);
+            }, 1000);
+        }
+
+        function showVenusAtmosphereText(word, type) {
+            const resultEl = document.getElementById('venus-result-text');
+            let text = "";
+
+            const templates = {
+                joy: `“在名为${word}的极光中，<br>我看见那些被时光磨损的温柔，<br>重新在他唇角绽放。”`,
+                calm: `“${word}的凝视如深海，<br>将喧嚣的灵魂彻底放逐，<br>唯有此时，你们才真正重逢。”`,
+                void: `“当意识处于${word}的隙间，<br>世界化作无数尘埃，<br>唯有他的轮廓，是唯一的锚点。”`,
+                tension: `“那抹${word}背后的红线正在崩紧，<br>理智与欲念在博弈，<br>谁先听见了谁的心跳声？”`,
+                default: `“${word}的残影横跨了记忆的回廊，<br>在维纳斯的注视下，<br>一段宿命的共振正在发生。”`
+            };
+
+            resultEl.innerHTML = templates[type] || templates.default;
+            resultEl.style.opacity = '1';
+
+            // 4. 最后跳转到窥视页面
+            setTimeout(() => {
+                resultEl.style.opacity = '0';
+                setTimeout(() => {
+                    goToPage('peeking');
+                    showToast("✦ 命运之眼已睁开 ✦");
+                    
+                    // 增量：5秒后跳转到信件页面揭晓答案
+                    setTimeout(() => {
+                        startLetterPhase();
+                    }, 5000);
+                }, 2000);
+            }, 5000);
+        }
+
+        // 增强 goToPage 以支持字符串 ID
+        const originalGoToPage = goToPage;
+        goToPage = function(pageNum) {
+            if (typeof pageNum === 'string') {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                const target = document.getElementById(`page-${pageNum}`);
+                if (target) target.classList.add('active');
+            } else {
+                originalGoToPage(pageNum);
+            }
+        };
+
+        function setVisualsLoaded(hasImage) {
+            const placeholder = document.getElementById('card-placeholder');
+            const imgElement = document.getElementById('display-fragment');
+            const card = document.querySelector('.tarot-card');
+            if (hasImage) {
+                placeholder.style.opacity = '0';
+                imgElement.style.opacity = '1';
+                card.style.background = '#fff';
+            } else {
+                placeholder.style.opacity = '1';
+                imgElement.style.opacity = '0';
+                card.style.background = 'rgba(255, 255, 255, 0.03)';
+            }
+        }
+
+        function loadSavedFragment() {
+            if (!db) return;
+            const transaction = db.transaction([STORE_NAME], 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const getReq = store.get('latest');
+            getReq.onsuccess = () => {
+                if (getReq.result) {
+                    document.getElementById('display-fragment').src = URL.createObjectURL(getReq.result);
+                    setVisualsLoaded(true);
+                } else setVisualsLoaded(false);
+            };
+        }
+
+        function ensureDb() {
+            return new Promise(function (resolve, reject) {
+                if (db) return resolve(db);
+                var req = indexedDB.open(DB_NAME, 1);
+                req.onupgradeneeded = function (e) {
+                    db = e.target.result;
+                    if (!db.objectStoreNames.contains(STORE_NAME)) db.createObjectStore(STORE_NAME);
+                };
+                req.onsuccess = function (e) {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                req.onerror = function () { reject(req.error); };
+            });
+        }
+
+        function processMemoryFragment(event) {
+            const file = event.target.files[0];
+            if (!file || file.size > 20 * 1024 * 1024) return showToast("碎片无效或过大。");
+            ensureDb().then(function (database) {
+            const transaction = database.transaction([STORE_NAME], 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            store.put(file, 'latest').onsuccess = () => {
+                document.getElementById('display-fragment').src = URL.createObjectURL(file);
+                setVisualsLoaded(true);
+                showToast("灵力感应增强了。");
+            };
+            }).catch(function () {
+                showToast('本地存储不可用（可忽略 Tracking Prevention 提示）');
+            });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('status-toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        function triggerDreamTransition() {
+            const tl = document.getElementById('dream-transition');
+            tl.style.display = 'flex';
+            setTimeout(() => { tl.classList.add('expanding'); }, 50);
+            setTimeout(() => {
+                goToPage(2);
+                tl.style.opacity = '0';
+                tl.style.transition = 'opacity 1.5s ease';
+                setTimeout(() => {
+                    tl.style.display = 'none';
+                    tl.classList.remove('expanding');
+                    tl.style.opacity = '1';
+                }, 1500);
+            }, 4000); 
+        }
+
+        function showCustomTrans(id) {
+            const el = document.getElementById(id);
+            el.style.display = 'flex';
+            requestAnimationFrame(() => { el.classList.add('active'); });
+        }
+
+        function goToVenusHub() {
+            const el = document.getElementById('venus-trans');
+            el.classList.remove('active');
+            
+            setTimeout(() => {
+                el.style.display = 'none';
+                const page3 = document.getElementById('page3');
+                if (page3) {
+                    page3.classList.add('venus-mode');
+                    page3.classList.remove('hermes-mode'); 
+                    createCoffeeParticles();
+                }
+                goToPage(4);
+                startLoveAtmosphere();
+                showToast("✦ 欢迎来到维纳斯的领域 ✦");
+            }, 1000);
+        }
+
+        function startLoveAtmosphere() {
+            // 切换背景氛围
+            document.body.style.backgroundColor = "#fff1f3";
+            const overlay = document.querySelector('.bg-overlay');
+            if (overlay) overlay.style.opacity = "0";
+
+            // 启动爱心粒子
+            if (!window.loveInterval) {
+                window.loveInterval = setInterval(createFloatingHeart, 600);
+            }
+        }
+
+        function createFloatingHeart() {
+            if (document.getElementById('page4').classList.contains('active')) {
+                const heart = document.createElement('div');
+                heart.className = 'heart-float';
+                heart.innerHTML = Math.random() > 0.5 ? '❤' : '🌸';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.bottom = '-5vh';
+                heart.style.fontSize = (Math.random() * 15 + 10) + 'px';
+                heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                heart.style.opacity = Math.random() * 0.5 + 0.3;
+                
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 7000);
+            }
+        }
+
+        function hideCustomTrans(id) {
+            const el = document.getElementById(id);
+            el.classList.remove('active');
+            setTimeout(() => { el.style.display = 'none'; }, 2000);
+        }
+
+        function goToPage(pageNum) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const target = document.getElementById(`page${pageNum}`);
+            if(target) target.classList.add('active');
+            if (pageNum === 2) resetAndStartVN();
+        }
+
+        // ==================== 占卜互动逻辑 ====================
+        let activeCardIdx = 3;
+        let isExtracted = false;
+        let extractedEl = null;
+        let ritualStartTime = 0;
+        let lastHandZ = 0;
+
+        window.__cardDiag = function (label) {
+            var card = document.querySelector('#divine-card-portal > .divine-card-item');
+            var portal = document.getElementById('divine-card-portal');
+            var row = document.getElementById('divine-card-row');
+            var vh = window.innerHeight, vw = window.innerWidth;
+            var chain = [], el = card;
+            while (el) { chain.push(el.id || el.className || el.tagName); el = el.parentElement; }
+            var r = card ? card.getBoundingClientRect() : null;
+            var report = {
+                label: label,
+                parentId: card && card.parentElement ? card.parentElement.id : null,
+                classes: card ? card.className : null,
+                chain: chain.slice(0, 8),
+                rect: r ? { top: Math.round(r.top), left: Math.round(r.left), w: Math.round(r.width), h: Math.round(r.height), centerY: Math.round(r.top + r.height / 2), centerX: Math.round(r.left + r.width / 2) } : null,
+                offsetFromCenter: r ? { dy: Math.round(r.top + r.height / 2 - vh / 2), dx: Math.round(r.left + r.width / 2 - vw / 2) } : null,
+                inRow: !!(row && card && row.contains(card))
+            };
+            if (report.offsetFromCenter && Math.abs(report.offsetFromCenter.dy) > 60) {
+                console.warn('[卡牌诊断] 垂直偏离中心 ' + report.offsetFromCenter.dy + 'px');
+            }
+            console.log('[卡牌诊断]', report);
+            return report;
+        };
+
+        const fortunes = [
+            { t: "大吉", s: "群星闪耀之时，万事皆得圆满。" },
+            { t: "吉", s: "顺应时势，微小的火花亦能点亮长夜。" },
+            { t: "中", s: "静待花开。此刻的沉默是命运在积蓄力量。" },
+            { t: "凶", s: "流云遮月。宜闭目内省，暂避锋芒。" },
+            { t: "大凶", s: "逆风而行，须守住内心最后一丝纯粹。" }
+        ];
+
+        // 增量开发：关闭占卜界面并返回选择页面
+        function closeDivinationAndReturn() {
+            // 1. 隐藏占卜舞台
+            const stage = document.getElementById('divination-stage');
+            stage.style.display = 'none';
+
+            // 2. 移除为了层级效果而被 append 到 body 上的翻转卡牌
+            document.querySelectorAll('.divine-card-item.flipped').forEach(el => el.remove());
+            var portal = document.getElementById('divine-card-portal');
+            if (portal) portal.innerHTML = '';
+
+            // 3. 重置内部逻辑状态位
+            isExtracted = false;
+            extractedEl = null;
+            resetRitual();
+
+            // 4. 为页面3应用赫尔墨斯风格类
+            const page3 = document.getElementById('page3');
+            if (page3) {
+                page3.classList.add('hermes-mode');
+                createCoffeeParticles();
+            }
+
+            // 5. 跳转回 Page 3
+            goToPage(3);
+        }
+
+        function createCoffeeParticles() {
+            const container = document.getElementById('hermes-decor');
+            if (!container) return;
+            
+            // 仅生成一次
+            if (container.querySelectorAll('.coffee-particle').length > 0) return;
+
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.className = 'coffee-particle';
+                const size = Math.random() * 4 + 2;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.top = Math.random() * 100 + '%';
+                
+                // 飘动动画
+                const duration = 15 + Math.random() * 20;
+                p.animate([
+                    { transform: 'translate(0, 0)', opacity: 0.1 },
+                    { transform: `translate(${Math.random() * 100 - 50}px, ${-Math.random() * 200}px)`, opacity: 0.3 },
+                    { transform: `translate(${Math.random() * 200 - 100}px, ${-Math.random() * 400}px)`, opacity: 0 }
+                ], {
+                    duration: duration * 1000,
+                    iterations: Infinity,
+                    easing: 'linear'
+                });
+                
+                container.appendChild(p);
+            }
+        }
+
+        function startDivinationStage() {
+            hideCustomTrans('hermes-trans');
+            setTimeout(() => {
+                document.getElementById('divination-stage').style.display = 'flex';
+                initDivineCards();
+                initDivineCanvas();
+                startHandTracking();
+            }, 1000);
+        }
+
+
+        function getDivineCardPortal() {
+            var portal = document.getElementById('divine-card-portal');
+            if (!portal) {
+                portal = document.createElement('div');
+                portal.id = 'divine-card-portal';
+                portal.setAttribute('aria-hidden', 'true');
+                document.body.appendChild(portal);
+            }
+            return portal;
+        }
+
+        function clearCardInlineLayout(card) {
+            if (!card) return;
+            card.removeAttribute('style');
+        }
+
+        var EXTRACTED_CARD_W = 264;
+        var EXTRACTED_CARD_H = 449;
+
+        function applyPortalCardLayout(card) {
+            if (!card) return;
+            var portal = getDivineCardPortal();
+            var oldSlot = document.getElementById('divine-card-slot');
+            if (oldSlot) oldSlot.remove();
+            if (card.parentElement !== portal) {
+                portal.appendChild(card);
+            }
+            card.style.setProperty('transition', 'none', 'important');
+            card.style.setProperty('position', 'fixed', 'important');
+            card.style.setProperty('left', '0', 'important');
+            card.style.setProperty('right', '0', 'important');
+            card.style.setProperty('top', '0', 'important');
+            card.style.setProperty('bottom', '0', 'important');
+            card.style.setProperty('width', EXTRACTED_CARD_W + 'px', 'important');
+            card.style.setProperty('height', EXTRACTED_CARD_H + 'px', 'important');
+            card.style.setProperty('margin', 'auto', 'important');
+            card.style.setProperty('transform', 'none', 'important');
+            card.style.setProperty('opacity', '1', 'important');
+            card.style.setProperty('z-index', '100012', 'important');
+            card.style.setProperty('transform-style', 'flat', 'important');
+        }
+
+        function mountExtractedCardToPortal(card) {
+            if (!card) return;
+            card.style.transition = 'none';
+            card.style.transform = 'none';
+            applyPortalCardLayout(card);
+        }
+
+        function lockExtractedCardCenter(card) {
+            applyPortalCardLayout(card);
+        }
+
+        function returnCardToRow(card) {
+            if (!card) return;
+            var oldSlot = document.getElementById('divine-card-slot');
+            if (oldSlot) oldSlot.remove();
+            clearCardInlineLayout(card);
+            var row = document.getElementById('divine-card-row');
+            if (row) {
+                row.classList.remove('cards-dismissed');
+                row.appendChild(card);
+            }
+        }
+
+        function initDivineCards() {
+            var portalReset = document.getElementById('divine-card-portal');
+            if (portalReset) portalReset.innerHTML = '';
+            const row = document.getElementById('divine-card-row');
+            if (row) row.classList.remove('cards-dismissed');
+            row.innerHTML = "";
+            const elementSymbols = ["🜂", "🜄", "🜁", "🜃", "⚛", "☽", "☉", "♤"];
+            
+            for (let i = 0; i < 7; i++) {
+                const randomFortune = fortunes[Math.floor(Math.random() * fortunes.length)];
+                // 判定是否为“大凶”，若是则修改按钮文字
+                const btnText = randomFortune.t === "大凶" ? "我不信"
+                    : randomFortune.t === "大吉" ? "不愧是我"
+                    : "归还记忆";
+                
+                const card = document.createElement('div');
+                card.className = 'divine-card-item';
+                card.innerHTML = `
+                    <div class="divine-card-inner">
+                        <div class="divine-card-face face-front">
+                            <span class="element-symbol sym-top-left">${elementSymbols[Math.floor(Math.random()*elementSymbols.length)]}</span>
+                            <span class="element-symbol sym-top-right">${elementSymbols[Math.floor(Math.random()*elementSymbols.length)]}</span>
+                            <span class="element-symbol sym-bot-left">${elementSymbols[Math.floor(Math.random()*elementSymbols.length)]}</span>
+                            <span class="element-symbol sym-bot-right">${elementSymbols[Math.floor(Math.random()*elementSymbols.length)]}</span>
+                            <div class="mystic-mandala"><span>✦</span></div>
+                        </div>
+                        <div class="divine-card-face face-back">
+                            <div style="font-size: 1.8rem; font-weight: bold; margin-bottom: 20px;" class="f-res">${randomFortune.t}</div>
+                            <div style="font-size: 0.8rem; line-height: 1.8; color: var(--color-wood-mid);" class="f-msg">${randomFortune.s}</div>
+                            <button class="mystic-btn" style="margin-top: 40px; padding: 5px 20px; font-size: 0.6rem;" onclick="closeDivinationAndReturn()">${btnText}</button>
+                        </div>
+                    </div>
+                `;
+                row.appendChild(card);
+            }
+            updateCardsPosition();
+        }
+
+        function updateCardsPosition() {
+            const cards = document.querySelectorAll('.divine-card-item');
+            const STEP_WIDTH = 230; 
+            cards.forEach((c, i) => {
+                if (c.closest('#divine-card-portal')) return;
+                if (c.classList.contains('extracted') || c.classList.contains('flipped')) return;
+                
+                const offset = i - activeCardIdx;
+                const tx = offset * STEP_WIDTH;
+                const tz = Math.abs(offset) * -250;
+                const ry = offset * 24;
+                c.style.left = "50%";
+                c.style.marginLeft = "-100px";
+                c.style.transform = `translateX(${tx}px) translateZ(${tz}px) rotateY(${ry}deg)`;
+                c.style.opacity = 1 - Math.abs(offset) * 0.35;
+                c.style.zIndex = 100 - Math.abs(offset);
+            });
+        }
+
+        function initDivineCanvas() {
+            const cvs = document.getElementById('divine-canvas');
+            const ctx = cvs.getContext('2d');
+            cvs.width = window.innerWidth; cvs.height = window.innerHeight;
+            let particles = [];
+            for(let i=0; i<300; i++) {
+                particles.push({
+                    x: Math.random() * cvs.width - cvs.width/2,
+                    y: Math.random() * cvs.height - cvs.height/2,
+                    z: Math.random() * cvs.width,
+                    size: Math.random() * 2 + 1,
+                    color: Math.random() > 0.85 ? '#c4a484' : '#8b5a2b'
+                });
+            }
+            function draw() {
+                ctx.fillStyle = "rgba(253, 253, 245, 0.2)";
+                ctx.fillRect(0,0,cvs.width, cvs.height);
+                const centerX = cvs.width/2, centerY = cvs.height/2;
+                particles.forEach(p => {
+                    p.z -= 4; if(p.z <= 0) p.z = cvs.width;
+                    const scale = 500 / p.z;
+                    const x2d = p.x * scale + centerX, y2d = p.y * scale + centerY, s2d = p.size * scale;
+                    if(x2d > 0 && x2d < cvs.width && y2d > 0 && y2d < cvs.height) {
+                        ctx.beginPath(); ctx.arc(x2d, y2d, s2d, 0, Math.PI*2);
+                        ctx.fillStyle = p.color; ctx.globalAlpha = Math.min(0.5, scale/3); ctx.fill();
+                    }
+                });
+                ctx.globalAlpha = 1; requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        function handleHandResults(results) {
+            // 增量修正：确保只有在占卜阶段显示时才处理手势逻辑，防止在其他页面（如Q2）误触发
+            const stage = document.getElementById('divination-stage');
+            if (!stage || stage.style.display !== 'flex') {
+                return; 
+            }
+
+            const label = document.getElementById('gesture-label');
+            const sublabel = document.getElementById('gesture-sublabel');
+            const curtain = document.getElementById('divine-curtain');
+
+            if (!results.multiHandLandmarks || results.multiHandLandmarks.length === 0) {
+                label.innerText = "—— 等待虚空感应 ——";
+                sublabel.innerText = "请将手展示在相机区域内";
+                curtain.classList.remove('shrouded');
+                resetRitual(); return;
+            }
+            const pts = results.multiHandLandmarks[0];
+            const indexTip = pts[8], middleTip = pts[12], ringTip = pts[16];
+            const isFist = middleTip.y > pts[10].y && ringTip.y > pts[14].y && pts[20].y > pts[18].y;
+            const isOpen = indexTip.y < pts[6].y && middleTip.y < pts[10].y;
+            const isAtChinRegion = indexTip.y > 0.72;
+
+            if (!isExtracted) {
+                label.innerText = "← 左右滑动巡视星轨 →";
+                const target = Math.floor(indexTip.x * 7);
+                if (target !== activeCardIdx && target >= 0 && target < 7) {
+                    activeCardIdx = target; updateCardsPosition();
+                }
+                if (isFist && indexTip.z < lastHandZ - 0.01) {
+                    isExtracted = true;
+                    extractedEl = document.querySelectorAll('#divine-card-row .divine-card-item')[activeCardIdx];
+                    extractedEl.classList.add('extracted');
+                    mountExtractedCardToPortal(extractedEl);
+                    var cardRow = document.getElementById('divine-card-row');
+                    if (cardRow) cardRow.classList.add('cards-dismissed');
+                    updateCardsPosition();
+                    showToast("已锁定命运之牌");
+                }
+            } else if (!extractedEl.classList.contains('flipped')) {
+                lockExtractedCardCenter(extractedEl);
+                if (isAtChinRegion) {
+                    label.innerText = " 抵住下巴，虔诚许愿";
+                    curtain.classList.add('shrouded');
+                    processRitual();
+                } else {
+                    label.innerText = "将手移向下巴位置";
+                    curtain.classList.remove('shrouded');
+                    resetRitual();
+                    if (isOpen && indexTip.y < 0.4) {
+                        returnCardToRow(extractedEl);
+                        extractedEl.classList.remove('extracted');
+                        extractedEl.style.marginLeft = "-100px";
+                        isExtracted = false; extractedEl = null; updateCardsPosition();
+                    }
+                }
+            } else {
+                lockExtractedCardCenter(extractedEl);
+                label.innerText = "✧ 祈愿已传达 ✧";
+                curtain.classList.add('shrouded');
+            }
+            lastHandZ = indexTip.z;
+        }
+
+        function processRitual() {
+            if (!extractedEl || extractedEl.classList.contains('flipped')) return;
+            const aura = document.getElementById('ritual-aura'), ring = document.querySelector('#ritual-progress circle');
+            aura.style.display = 'flex';
+            if (!ritualStartTime) ritualStartTime = Date.now();
+            const progress = Math.min((Date.now() - ritualStartTime) / 4000, 1);
+            ring.style.strokeDashoffset = 283 - (progress * 283);
+            
+            if (progress >= 1) {
+                // 不再在此时生成随机数，而是直接翻转展示初始化时已确定的结果
+                extractedEl.classList.add('flipped');
+                lockExtractedCardCenter(extractedEl);
+                if (typeof __cardDiag === 'function') __cardDiag('③翻面出结果后');
+                resetRitual();
+                showToast("命运已揭晓");
+            }
+        }
+
+        function resetRitual() {
+            ritualStartTime = 0;
+            const aura = document.getElementById('ritual-aura');
+            if (aura) aura.style.display = 'none';
+            const ring = document.querySelector('#ritual-progress circle');
+            if (ring) ring.style.strokeDashoffset = 283;
+        }
+
+        const typewriterEl = document.getElementById('typewriter'), clickHintEl = document.getElementById('vn-click-hint');
+        const optionsEl = document.getElementById('dialog-options'), clickZone = document.getElementById('vn-click-zone'), skipBtn = document.getElementById('vn-skip-btn');
+
+        function resetAndStartVN() {
+            currentLineIndex = 0; isTyping = false; typewriterEl.innerHTML = ""; optionsEl.style.display = "none";
+            skipBtn.style.display = "block"; startNextLine();
+        }
+
+        clickZone.onclick = (e) => {
+            if (e.target.closest('.skip-btn') || e.target.closest('.mystic-btn')) return;
+            if (isTyping) completeCurrentLine(); else if (canAdvance) startNextLine();
+        };
+
+        skipBtn.onclick = (e) => {
+            e.stopPropagation(); stopCurrentTyping();
+            currentLineIndex = lines.length; typewriterEl.innerHTML = lines[lines.length - 1]; showFinalOptions();
+        };
+
+        function startNextLine() {
+            if (currentLineIndex < lines.length) {
+                canAdvance = false; clickHintEl.classList.remove('show');
+                typewriterEl.innerHTML = ""; runTypewriter(lines[currentLineIndex]);
+            } else showFinalOptions();
+        }
+
+        function runTypewriter(text) {
+            isTyping = true; let i = 0;
+            currentTypingTimer = setInterval(() => {
+                typewriterEl.innerHTML += text.charAt(i++);
+                if (i >= text.length) onLineFinished();
+            }, 100);
+        }
+
+        function stopCurrentTyping() { if (currentTypingTimer) clearInterval(currentTypingTimer); isTyping = false; }
+        function completeCurrentLine() { stopCurrentTyping(); typewriterEl.innerHTML = lines[currentLineIndex]; onLineFinished(); }
+
+        function onLineFinished() {
+            stopCurrentTyping(); currentLineIndex++;
+            if (currentLineIndex < lines.length) { canAdvance = true; clickHintEl.classList.add('show'); }
+            else setTimeout(showFinalOptions, 600);
+        }
+
+        function showFinalOptions() {
+            canAdvance = false; isTyping = false; clickHintEl.classList.remove('show');
+            skipBtn.style.display = "none"; optionsEl.style.display = "flex";
+            initNoButton();
+        }
+
+        function initNoButton() {
+            const btn = document.getElementById('btn-no');
+            btn.onmouseover = (e) => {
+                e.stopPropagation(); btn.style.position = 'fixed';
+                btn.style.left = Math.random() * 60 + 20 + '%'; btn.style.top = Math.random() * 60 + 20 + '%';
+                btn.style.zIndex = "4000";
+            };
+        }
+
+        function exitApp() {
+            document.body.style.background = "black";
+            document.body.innerHTML = "<div style='color:var(--vn-accent); display:flex; height:100vh; align-items:center; justify-content:center; letter-spacing:15px; font-size:0.8rem;'>命运的丝线，暂时断开了。</div>";
+        }
+
+        function createDust() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const d = document.createElement('div'); d.className = 'dust';
+                const size = Math.random() * 3 + 1;
+                d.style.width = size + 'px'; d.style.height = size + 'px';
+                d.style.left = Math.random() * 100 + 'vw'; d.style.top = Math.random() * 100 + 'vh';
+                d.style.animationDuration = (Math.random() * 15 + 10) + 's';
+                container.appendChild(d);
+            }
+        }
+        createDust();
+
+        window.addEventListener('dblclick', (e) => {
+            // 增量修改：判定当前页面或舞台中是否存在已翻开的结果卡牌
+            const flippedCard = document.querySelector('.divine-card-item.flipped');
+            
+            // 如果结果还没出来，双击不触发任何跳转逻辑
+            if (!flippedCard) return;
+
+            // 创建视觉反馈
+            const ripple = document.createElement('div');
+            ripple.className = 'jump-ripple';
+            ripple.style.left = e.clientX + 'px';
+            ripple.style.top = e.clientY + 'px';
+            document.body.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 800);
+
+            // 触发逻辑：如果正在占卜舞台（且结果已出）则关闭占卜，否则执行页面跳转
+            const stage = document.getElementById('divination-stage');
+            if (stage && stage.style.display === 'flex') {
+                closeDivinationAndReturn();
+            } else {
+                // 确保跳转到Page 3并应用赫尔墨斯风格
+                const page3 = document.getElementById('page3');
+                if (page3) {
+                    page3.classList.add('hermes-mode');
+                    createCoffeeParticles();
+                    
+                    // 修改背景色以配合米色风格
+                    document.body.style.backgroundColor = "var(--color-cream)";
+                    document.querySelector('.bg-overlay').style.opacity = "0";
+                }
+                goToPage(3);
+            }
+            showToast("✦ 命运跳跃：抵达启示之境 ✦");
+        });
+
+        // 增强现有的返回逻辑，确保风格切换更彻底
+        const originalCloseDivination = closeDivinationAndReturn;
+        closeDivinationAndReturn = function() {
+            // 先调用原有逻辑处理卡牌和舞台隐藏
+            if (typeof originalCloseDivination === 'function') {
+                originalCloseDivination();
+            }
+            
+            const page3 = document.getElementById('page3');
+            if (page3) {
+                // 核心修复：显式移除维纳斯模式的类名，确保赫尔墨斯类名生效
+                page3.classList.remove('venus-mode');
+                page3.classList.add('hermes-mode');
+                
+                // 重置容器内的装饰效果
+                createCoffeeParticles();
+            }
+            
+            // 额外确保全局背景色和氛围切换为米色
+            document.body.style.backgroundColor = "var(--color-cream)";
+            const overlay = document.querySelector('.bg-overlay');
+            if (overlay) {
+                overlay.style.opacity = "0";
+            }
+
+            // 停止维纳斯模式下的爱心生成定时器
+            if (window.loveInterval) {
+                clearInterval(window.loveInterval);
+                window.loveInterval = null;
+            }
+
+            // 清理页面上残留的爱心粒子
+            document.querySelectorAll('.heart-float').forEach(h => h.remove());
+            
+            // 确保页面 4 的活性被清除，防止样式干扰
+            const page4 = document.getElementById('page4');
+            if (page4) page4.classList.remove('active');
+            
+            showToast("✦ 赫尔墨斯的密语已重塑此间 ✦");
+        };
+
+        // 修改从维纳斯回廊返回的逻辑，确保它维持维纳斯模式
+        function returnToPage3FromVenus() {
+            const page3 = document.getElementById('page3');
+            if (page3) {
+                page3.classList.add('venus-mode');
+                page3.classList.remove('hermes-mode');
+            }
+            goToPage(3);
+            showToast("✦ 维纳斯的余香尚未散去 ✦");
+        }
+
+        // 重新绑定 Page 4 的返回按钮
+        const vReturnBtn = document.querySelector('#page4 .mystic-btn[onclick*="goToPage(3)"]');
+        if (vReturnBtn) {
+            vReturnBtn.setAttribute('onclick', 'returnToPage3FromVenus()');
+        }
+
+        // ==================== 增量逻辑：维纳斯信件与祈福 ====================
+        let dir1Idx = 0;
+        let dir2Idx = 0;
+
+        function startLetterPhase() {
+            goToPage('letter');
+            
+            // 重置所有状态
+            document.getElementById('letter-container').classList.remove('in-center');
+            document.getElementById('envelope-body').classList.remove('open');
+            document.getElementById('envelope-body').style.opacity = '1';
+            const sticker = document.getElementById('heart-sticker');
+            sticker.classList.remove('torn');
+            document.getElementById('paper-overlay-click').style.display = 'none';
+            document.getElementById('message-input-area').style.display = 'none';
+            document.getElementById('message-input-area').style.opacity = '0';
+            document.getElementById('venus-blessing').style.display = 'none';
+            document.getElementById('venus-blessing').style.opacity = '0';
+            document.getElementById('letter-return-btn').style.display = 'none';
+            
+            // 重置单线纸为初始状态（隐藏）
+            const linedPaper = document.getElementById('lined-paper');
+            linedPaper.style.display = 'none';
+            linedPaper.classList.remove('show');
+            linedPaper.style.opacity = '0';
+            linedPaper.style.transform = 'translateY(30px)';
+            document.getElementById('paper-hint').style.opacity = '0';
+            document.getElementById('wish-input').value = '';
+            
+            // 动画入场
+            setTimeout(() => {
+                document.getElementById('letter-container').classList.add('in-center');
+            }, 500);
+        }
+
+        // 绑定贴纸拖拽撕毁逻辑（旧 page-letter 已移除，仅在有 DOM 时绑定）
+        const letterSticker = document.getElementById('heart-sticker');
+        if (letterSticker) {
+            let isDraggingSticker = false;
+            let startStickerY = 0;
+
+            const handleStickerDown = (e) => {
+                isDraggingSticker = true;
+                startStickerY = e.clientY || (e.touches && e.touches[0].clientY);
+            };
+
+            const handleStickerMove = (e) => {
+                if (!isDraggingSticker) return;
+                const currentY = e.clientY || (e.touches && e.touches[0].clientY);
+                if (currentY === undefined) return;
+                const diff = currentY - startStickerY;
+                if (Math.abs(diff) > 20) {
+                    tearSticker();
+                }
+            };
+
+            const handleStickerUp = () => { isDraggingSticker = false; };
+
+            letterSticker.addEventListener('mousedown', handleStickerDown);
+            window.addEventListener('mousemove', handleStickerMove);
+            window.addEventListener('mouseup', handleStickerUp);
+            letterSticker.addEventListener('touchstart', handleStickerDown, {passive: true});
+            window.addEventListener('touchmove', handleStickerMove, {passive: true});
+            window.addEventListener('touchend', handleStickerUp);
+        }
+
+        function tearSticker() {
+            const sticker = document.getElementById('heart-sticker');
+            const envelopeBody = document.getElementById('envelope-body');
+            const linedPaper = document.getElementById('lined-paper');
+
+            if (!sticker) return;
+
+            // 1. 触发火漆撕裂与信封打开动画
+            sticker.classList.add('torn');
+            if (envelopeBody) {
+                envelopeBody.classList.add('open');
+            }
+
+            // 2. 延迟 600ms（等待信封打开动画过半），让单线纸优雅登场并注入文案
+            setTimeout(() => {
+                if (linedPaper) {
+                    // 确保单线纸显示并添加激活类
+                    linedPaper.style.display = 'block';
+                    
+                    // 强制重绘以确保 CSS transition 动画生效
+                    void linedPaper.offsetWidth; 
+                    linedPaper.classList.add('show');
+
+                    // 3. 动态生成并注入占卜结果
+                    renderVenusPredictions();
+                    
+                    // 4. 显示单线纸内容
+                    const paperContent = linedPaper.querySelector('.paper-content');
+                    if (paperContent) {
+                        paperContent.style.opacity = '1';
+                    }
+                }
+            }, 600);
+        }
+
+        // 辅助函数：负责向单线纸内精准塞入高奢排版的占卜结果
+        function renderVenusPredictions() {
+            const linedPaper = document.getElementById('lined-paper');
+            if (!linedPaper) return;
+
+            // 1. 生成方向1：今天要不要主动推进？ (不推进 15% / 顺其自然 45% / 可以轻微推进 40%)
+            const r1 = Math.random();
+            if (r1 < 0.15) dir1Idx = 0; 
+            else if (r1 < 0.60) dir1Idx = 1; 
+            else dir1Idx = 2; 
+
+            // 2. 生成方向2：今天对方的动静 (没有明显波动 50% / 想到了你 50%)
+            dir2Idx = Math.random() < 0.5 ? 0 : 1; 
+
+            const d1Texts = [
+                "「暂缓脚步」<br>星象显示，今日的静默比试探更有力量。<br>让距离感成为发酵的引子。",
+                "「顺其自然」<br>像水流经过卵石，不需刻意，<br>缘分的引力自会指引你们的轨迹。",
+                "「泛起涟漪」<br>今日的风向适合借微风之名，<br>传递一个不经意的轻柔问候。"
+            ];
+            
+            const d2Texts = [
+                "「彼方无风」<br>对方的心湖此刻未现波澜，<br>或许正安静地在现实的喧嚣中沉浮。",
+                "「余音绕梁」<br>在某个发呆的间隙，一个与你有关的片段，<br>悄然划过了对方的意识边缘。"
+            ];
+
+            const direction1 = d1Texts[dir1Idx];
+            const direction2 = d2Texts[dir2Idx];
+
+            // 单一方式注入内容到单线纸
+            linedPaper.innerHTML = `
+                <div class="paper-content" style="opacity: 1; pointer-events: auto;">
+                    <div class="prediction-block" style="margin-bottom: 25px;">
+                        <span style="color:var(--love-main); font-weight:bold;">【今日指引】</span><br>
+                        ${direction1}
+                    </div>
+                    <br>
+                    <div class="prediction-block">
+                        <span style="color:var(--love-main); font-weight:bold;">【彼方回响】</span><br>
+                        ${direction2}
+                    </div>
+                </div>
+                <div class="paper-hint" id="paper-hint" style="opacity: 1;">✧ 点击纸张深处 ✧</div>
+            `;
+            
+            // 显示点击区域（透明覆盖层）以接收点击事件
+            const paperOverlay = document.getElementById('paper-overlay-click');
+            if (paperOverlay) {
+                paperOverlay.style.display = 'block';
+                paperOverlay.style.zIndex = '15';
+            }
+        }
+
+        function showLetterInput() {
+            // 1. 隐藏点击区域和提示
+            const paperOverlay = document.getElementById('paper-overlay-click');
+            if (paperOverlay) paperOverlay.style.display = 'none';
+            
+            const paperHint = document.getElementById('paper-hint');
+            if (paperHint) paperHint.style.opacity = '0';
+            
+            // 2. 隐藏信纸和信封，为输入框腾出空间
+            const linedPaper = document.getElementById('lined-paper');
+            if (linedPaper) {
+                linedPaper.style.opacity = '0';
+                linedPaper.style.pointerEvents = 'none';
+            }
+            
+            const letterContainer = document.getElementById('letter-container');
+            if (letterContainer) {
+                letterContainer.style.opacity = '0.2';
+                letterContainer.style.pointerEvents = 'none';
+            }
+            
+            // 3. 显示输入框
+            setTimeout(() => {
+                const inputArea = document.getElementById('message-input-area');
+                if (inputArea) {
+                    inputArea.style.display = 'flex';
+                    // 强制重绘以确保 transition 生效
+                    void inputArea.offsetWidth;
+                    inputArea.style.opacity = '1';
+                }
+            }, 400);
+        }
+
+        function sendWishToVenus() {
+            const input = document.getElementById('wish-input').value.trim();
+            if(!input) {
+                showToast("请留下一点回响...");
+                return;
+            }
+            if (typeof window.logUserInput === 'function') {
+                window.logUserInput('venus_wish', { text: input });
+            }
+            
+            // 输入框和信纸渐隐消失
+            document.getElementById('message-input-area').style.opacity = '0';
+            document.getElementById('lined-paper').style.opacity = '0';
+            
+            setTimeout(() => {
+                document.getElementById('message-input-area').style.display = 'none';
+                
+                const blessingTexts = {
+                    "0-0": "“维纳斯收下你的期许。<br>有些等待是为了更好的盛开，<br>在无人知晓的角落，<br>时间正在酿造着下一次相遇。”",
+                    "0-1": "“维纳斯微笑着注视你。<br>哪怕你不曾靠近，<br>你的倒影也已落入他的眼眸。<br>保持神秘，也是一种诱惑。”",
+                    "1-0": "“维纳斯抚平了红线的焦躁。<br>顺应这平静的洪流吧，<br>神明会庇佑每一个不骄不躁的灵魂。”",
+                    "1-1": "“维纳斯听见了红线那头的回响。<br>就让一切如常发生，在不经意的瞬间，<br>也许命运会送来一个眼神交汇的奇迹。”",
+                    "2-0": "“维纳斯赐予你踏出微小一步的勇气。<br>无论对方是否即刻回应，<br>这阵风已然吹过他心头的旷野。”",
+                    "2-1": "“维纳斯为你披上心动的柔光。<br>既然他也在某个瞬间想起你，<br>何不让这微弱的引力，<br>在今天化作实质的交集？”"
+                };
+                
+                const key = `${dir1Idx}-${dir2Idx}`;
+                const bText = blessingTexts[key];
+                
+                const blessEl = document.getElementById('venus-blessing');
+                blessEl.innerHTML = bText;
+                blessEl.style.display = 'block';
+                void blessEl.offsetWidth;
+                blessEl.style.opacity = '1';
+                
+                setTimeout(() => {
+                    document.getElementById('letter-return-btn').style.display = 'block';
+                }, 2500);
+                
+            }, 1500);
+        }
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+    <script src="firebase/firebase-config.js"></script>
+    <script src="firebase/user-input-logger.js"></script>
+    <script src="play-modes/meditation-audio.js"></script>
+    <script src="lovesign-embed.js"></script>
+    <script src="heartrate-embed.js"></script>
+    <script>
+        (function () {
+            if (typeof window.initializeEngine === 'function') return;
+            console.error(
+                '[心跳共振] heartrate-embed.js 未成功加载。请确认该文件与 HTML 在同一文件夹（交互/资料），并强制刷新 (Ctrl+F5)。'
+            );
+        })();
+    </script>
+</body>
+</html>

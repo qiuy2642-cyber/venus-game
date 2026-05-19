@@ -1,0 +1,274 @@
+/* 恋签环节 — 自 恋签环节.html 迁入，作用域限定在 #page-lovesign */
+
+#page-lovesign.active {
+    display: block;
+    padding: 0;
+    justify-content: stretch;
+    align-items: stretch;
+    z-index: 200;
+}
+
+body.lovesign-active .noise,
+body.lovesign-active .astrolabe,
+body.lovesign-active .frame-border {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+body.lovesign-active .bg-overlay {
+    opacity: 0 !important;
+}
+
+#page-lovesign {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #fcfaf2;
+}
+
+#page-lovesign,
+#page-lovesign .lovesign-root {
+    --love-main: #8b1a1a;
+    --love-deep: #520c0c;
+    --love-pink: #fdf3f0;
+    --color-cream: #fcfaf2;
+    --color-gold: #c5a059;
+}
+
+#page-lovesign .lovesign-root {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: var(--color-cream);
+    overflow: hidden;
+    font-family: 'Noto Serif SC', 'Cinzel', serif;
+    color: var(--love-deep);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#page-lovesign .soft-blur-in {
+    animation: lovesignSoftBlurIn 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes lovesignSoftBlurIn {
+    0% { filter: blur(20px); opacity: 0; transform: scale(0.96); }
+    100% { filter: blur(0px); opacity: 1; transform: scale(1); }
+}
+
+#page-lovesign #canvas-container {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
+}
+
+#page-lovesign #ui-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
+    pointer-events: none;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+
+#page-lovesign .btn-venus {
+    pointer-events: auto;
+    background: rgba(253, 243, 240, 0.45);
+    border: 1px solid rgba(139, 26, 26, 0.25);
+    color: var(--love-main);
+    padding: 12px 36px;
+    font-size: 0.95rem;
+    letter-spacing: 0.45em;
+    cursor: pointer;
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+    border-radius: 4px;
+}
+
+#page-lovesign .btn-venus:hover {
+    border-color: var(--love-main);
+    background: rgba(139, 26, 26, 0.08);
+    text-shadow: 0 0 10px rgba(139, 26, 26, 0.25);
+    box-shadow: inset 0 0 20px rgba(139, 26, 26, 0.05);
+    transform: scale(1.02);
+}
+
+#page-lovesign .btn-venus:disabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+#page-lovesign .heart-beat {
+    animation: lovesignHeartbeat 1.6s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+@keyframes lovesignHeartbeat {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.12); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.18); }
+    70% { transform: scale(1); }
+}
+
+#page-lovesign .heart-beat-centered {
+    animation: lovesignHeartbeatCentered 1.6s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+@keyframes lovesignHeartbeatCentered {
+    0% { transform: translateX(-50%) scale(1); }
+    14% { transform: translateX(-50%) scale(1.12); }
+    28% { transform: translateX(-50%) scale(1); }
+    42% { transform: translateX(-50%) scale(1.18); }
+    70% { transform: translateX(-50%) scale(1); }
+}
+
+#page-lovesign #finger-cursor {
+    position: absolute;
+    width: 32px; height: 32px;
+    background: transparent;
+    border: 1px solid var(--love-main);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 20;
+    transform: translate(-50%, -50%);
+    display: none;
+    transition: width 0.3s, height 0.3s, border-color 0.4s, transform 0.3s;
+}
+
+#page-lovesign #finger-cursor::before {
+    content: '';
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 8px; height: 8px; background: var(--love-main);
+    border-radius: 50%;
+    opacity: 0.7;
+}
+
+#page-lovesign #finger-cursor::after {
+    content: '';
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 50px; height: 50px;
+    border: 1px dashed rgba(139, 26, 26, 0.15);
+    border-radius: 50%;
+}
+
+#page-lovesign #result-card-container {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 90%; max-width: 440px;
+    z-index: 30;
+    opacity: 0; pointer-events: none;
+    transition: opacity 1.5s ease;
+    perspective: 1200px;
+}
+
+#page-lovesign #result-card-inner {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    position: relative;
+    width: 100%;
+    transition: transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transform-style: preserve-3d;
+}
+
+#page-lovesign .epistle-paper {
+    grid-area: 1 / 1 / 2 / 2;
+    width: 100%;
+    backface-visibility: hidden;
+    background: var(--color-cream);
+    box-shadow: 0 20px 60px rgba(139, 26, 26, 0.08);
+    border-radius: 6px;
+    padding: 40px 30px;
+    border: 1px solid rgba(139, 26, 26, 0.15);
+    background-image: radial-gradient(rgba(139, 26, 26, 0.03) 1px, transparent 0);
+    background-size: 24px 24px;
+    box-sizing: border-box;
+}
+
+#page-lovesign .epistle-back {
+    transform: rotateY(180deg);
+}
+
+#page-lovesign .epistle-border {
+    border: 1px dashed rgba(139, 26, 26, 0.2);
+    padding: 20px;
+    border-radius: 4px;
+    position: relative;
+}
+
+#page-lovesign #wax-seal {
+    position: absolute;
+    top: -35px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 70px;
+    height: 70px;
+    background: var(--love-main);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 4px 15px rgba(139, 26, 26, 0.35);
+    transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 10;
+}
+
+#page-lovesign #wax-seal:hover {
+    background: var(--love-deep);
+    box-shadow: 0 6px 20px rgba(139, 26, 26, 0.5);
+}
+
+#page-lovesign #wax-seal::after {
+    content: '♥';
+    color: var(--color-cream);
+    font-size: 1.8rem;
+}
+
+#page-lovesign .whisper-title {
+    font-size: 0.9rem;
+    color: var(--love-main);
+    letter-spacing: 0.6em;
+    margin-bottom: 24px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+#page-lovesign .whisper-text {
+    color: var(--love-deep);
+    font-size: 1.05rem;
+    line-height: 2.3;
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    opacity: 0.85;
+    transition: opacity 1.5s ease;
+}
+
+#page-lovesign .whisper-sub {
+    color: rgba(139, 26, 26, 0.5);
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    margin-top: 24px;
+}
+
+#page-lovesign #cardiogram-header {
+    width: 120px; height: 24px;
+    opacity: 0.35;
+    margin: 0 auto 15px auto;
+}
+
+#page-lovesign #stir-indicator {
+    position: absolute;
+    top: 30px;
+    padding: 8px 24px;
+    background: rgba(255, 245, 245, 0.85);
+    border: 1px solid rgba(139, 26, 26, 0.15);
+    border-radius: 30px;
+    font-size: 0.75rem;
+    color: var(--love-main);
+    letter-spacing: 0.3em;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+    z-index: 15;
+    box-shadow: 0 4px 15px rgba(139, 26, 26, 0.03);
+}

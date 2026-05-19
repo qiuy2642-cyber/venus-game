@@ -1,0 +1,487 @@
+/* 匹配度测试环节 — 自 匹配度测试环节.html 迁入 */
+
+#page-heartrate.active {
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    justify-content: stretch;
+    align-items: stretch;
+    z-index: 200;
+    overflow: hidden;
+}
+
+body.heartrate-active .noise,
+body.heartrate-active .astrolabe,
+body.heartrate-active .frame-border {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+body.heartrate-active .bg-overlay {
+    opacity: 0 !important;
+}
+
+#page-heartrate {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #FCFAF2;
+}
+
+#page-heartrate .heartrate-root {
+    position: absolute;
+    inset: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+#page-heartrate,
+#page-heartrate .heartrate-root {
+            --love-main: #B3243C;
+            --love-deep: #540D1A;
+            --color-cream: #FCFAF2;
+            --vn-accent: #C3A25A;
+            --text-ink: #2B1A1D;
+        }
+        
+        #page-heartrate .heartrate-root {
+            font-family: "Noto Serif SC", serif;
+            background-color: var(--color-cream);
+            color: var(--text-ink);
+            overflow-x: hidden;
+            transition: background-color 2.5s ease;
+        }
+        
+        /* 1. 复古羊皮纸噪点肌理 */
+        .parchment-grain {
+            position: relative;
+        }
+        .parchment-grain::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 99;
+        }
+
+        /* 古典信纸横线轻纹理 (Lined Paper Metaphor) */
+        .epistle-paper {
+            background-color: #FAF6ED;
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.4) 0%, rgba(245, 239, 229, 0.2) 100%),
+                repeating-linear-gradient(0deg, transparent, transparent 31px, rgba(179, 36, 60, 0.05) 31px, rgba(179, 36, 60, 0.05) 32px);
+            background-size: 100% 32px;
+            box-shadow: inset 0 0 40px rgba(195, 162, 90, 0.12), 0 15px 40px rgba(84, 13, 26, 0.08);
+            border: 1px solid rgba(195, 162, 90, 0.25);
+            color: var(--text-ink);
+        }
+
+        /* 2. 宿缘红线物理质感路径及浪漫发光效果 */
+        .red-line-svg path {
+            stroke-dasharray: 1500;
+            stroke-dashoffset: 1500;
+            animation: drawLine 5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            filter: drop-shadow(0 0 3px rgba(179, 36, 60, 0.6));
+        }
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* 命运红线呼吸发光动画 */
+        @keyframes redLineGlow {
+            0%, 100% { filter: drop-shadow(0 0 2px rgba(179, 36, 60, 0.4)); opacity: 0.85; }
+            50% { filter: drop-shadow(0 0 8px rgba(226, 92, 112, 0.9)); opacity: 1; }
+        }
+        .glow-red-line {
+            animation: redLineGlow 3s infinite ease-in-out;
+        }
+
+        /* 3. 唯美高斯模糊渐显机制 */
+        .screen-transition {
+            transition: opacity 1.2s cubic-bezier(0.34, 1.56, 0.64, 1), transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 1.2s ease-out;
+            filter: blur(0);
+        }
+        .screen-transition.blur-phase {
+            filter: blur(15px);
+            opacity: 0;
+            transform: scale(0.96) translateY(12px);
+        }
+
+        /* 4. 心跳脉搏与红线微光 */
+        @keyframes heartPulse {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 3px rgba(179, 36, 60, 0.3)); }
+            50% { transform: scale(1.12); filter: drop-shadow(0 0 15px rgba(226, 92, 112, 0.6)); }
+        }
+        #page-heartrate .heart-beat {
+            animation: heartPulse 1.8s infinite cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        @keyframes doubleHeartbeat {
+            0%, 100% { transform: scale(1); }
+            14% { transform: scale(1.18); }
+            28% { transform: scale(1.05); }
+            42% { transform: scale(1.24); }
+        }
+        #page-heartrate .double-heart-beat {
+            animation: doubleHeartbeat 1.3s infinite ease-in-out;
+        }
+
+        /* 维纳斯古典蕾丝边与细框线 */
+        .classic-border {
+            border: 1px solid rgba(195, 162, 90, 0.3);
+            outline: 1px dashed rgba(179, 36, 60, 0.15);
+            outline-offset: -5px;
+            position: relative;
+        }
+        .corner-star::before, .corner-star::after {
+            content: '✦';
+            position: absolute;
+            color: var(--love-main);
+            font-size: 9px;
+            line-height: 1;
+            opacity: 0.55;
+        }
+        .corner-star::before { top: 8px; left: 8px; }
+        .corner-star::after { bottom: 8px; right: 8px; }
+
+        /* 仪式感幽灵按钮 */
+        .altar-btn {
+            border: 1px solid rgba(179, 36, 60, 0.4);
+            background: linear-gradient(135deg, rgba(252, 250, 242, 0.9) 0%, rgba(245, 239, 229, 0.95) 100%);
+            letter-spacing: 5px;
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+            color: var(--love-deep);
+        }
+        .altar-btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(179, 36, 60, 0.08), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.8s ease;
+        }
+        .altar-btn:hover::after {
+            transform: translateX(100%);
+        }
+        .altar-btn:hover {
+            border-color: var(--love-main);
+            color: var(--love-main);
+            box-shadow: 0 0 15px rgba(179, 36, 60, 0.15), inset 0 0 8px rgba(179, 36, 60, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* 真实拟物火漆印章 */
+        .wax-seal-shadow {
+            box-shadow: 0 10px 25px rgba(84, 13, 26, 0.25), inset 0 -4px 10px rgba(0,0,0,0.3), inset 0 4px 10px rgba(255,255,255,0.2);
+        }
+
+        /* 唯美两板连结红线（仅竖线，中间不另加爱心；标题旁已有 ♥） */
+        #page-heartrate .inter-panel-bound-line {
+            background: linear-gradient(180deg, transparent, rgba(179, 36, 60, 0.4) 30%, rgba(179, 36, 60, 0.4) 70%, transparent);
+            width: 1px;
+            height: 100%;
+            position: relative;
+        }
+
+        /* 递交请求后的加载环：SVG 爱心几何中心对齐圆环 */
+        #page-heartrate #loader .hr-loader-ring {
+            position: relative;
+            width: 4rem;
+            height: 4rem;
+            margin: 0 auto;
+        }
+        #page-heartrate #loader .loader-spinner {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 1px solid rgba(226, 92, 112, 0.35);
+            border-top-color: #B3243C;
+            border-right-color: transparent;
+            animation: hrLoaderSpin 1.2s linear infinite;
+        }
+        @keyframes hrLoaderSpin {
+            to { transform: rotate(360deg); }
+        }
+        #page-heartrate #loader .loader-heart-wrap {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+        #page-heartrate #loader .loader-heart-svg {
+            width: 1.125rem;
+            height: 1.125rem;
+            display: block;
+            flex-shrink: 0;
+            fill: #B3243C;
+            opacity: 0.88;
+            transform-box: fill-box;
+            transform-origin: center;
+            filter: drop-shadow(0 0 6px rgba(179, 36, 60, 0.35));
+            animation: hrLoaderHeartPulse 1.8s infinite cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        @keyframes hrLoaderHeartPulse {
+            0%, 100% { transform: scale(1); opacity: 0.85; }
+            50% { transform: scale(1.08); opacity: 1; }
+        }
+
+        /* —— 分析页：信息密度与仪式感排版 —— */
+        #page-heartrate .hr-act {
+            padding: 2.5rem 2rem !important;
+        }
+        @media (min-width: 768px) {
+            #page-heartrate .hr-act {
+                padding: 3rem 2.75rem !important;
+            }
+        }
+        #page-heartrate .hr-act-header {
+            margin-bottom: 2rem;
+            padding-bottom: 1.25rem;
+        }
+        #page-heartrate .hr-act-block {
+            margin-bottom: 2rem;
+        }
+        #page-heartrate .hr-act-block:last-child {
+            margin-bottom: 0;
+        }
+        #page-heartrate .hr-act-kicker {
+            font-size: 0.625rem;
+            letter-spacing: 0.35em;
+            text-transform: uppercase;
+            color: rgba(84, 13, 26, 0.45);
+            margin-bottom: 0.5rem;
+        }
+        #page-heartrate .hr-act-title {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.2em;
+            color: #B3243C;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        #page-heartrate .hr-act-lead {
+            font-size: 0.8125rem;
+            line-height: 1.85;
+            color: rgba(84, 13, 26, 0.72);
+            letter-spacing: 0.06em;
+            margin-bottom: 1.25rem;
+            font-weight: 300;
+        }
+        #page-heartrate .hr-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+        #page-heartrate .hr-line {
+            font-size: 0.8125rem;
+            line-height: 1.9;
+            color: rgba(43, 26, 29, 0.78);
+            font-weight: 300;
+            letter-spacing: 0.04em;
+            opacity: 0;
+            transform: translateY(8px);
+            transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        #page-heartrate .hr-line.hr-line-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        #page-heartrate .hr-act-note {
+            font-size: 0.6875rem;
+            color: rgba(84, 13, 26, 0.5);
+            letter-spacing: 0.12em;
+            margin-bottom: 0.35rem;
+        }
+        #page-heartrate .hr-act-divider {
+            height: 1px;
+            margin: 1.75rem 0;
+            background: linear-gradient(90deg, transparent, rgba(195, 162, 90, 0.35), transparent);
+        }
+        #page-heartrate .hr-card-soft {
+            padding: 1.5rem 1.35rem !important;
+        }
+        #page-heartrate .corner-star::before,
+        #page-heartrate .corner-star::after {
+            content: '';
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(179, 36, 60, 0.55) 0%, transparent 70%);
+            box-shadow: 0 0 8px rgba(179, 36, 60, 0.25);
+            font-size: 0;
+        }
+
+        /* 四象光晕（替代 emoji） */
+        #page-heartrate .hr-glyphs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+        #page-heartrate .hr-glyphs-x {
+            font-size: 0.65rem;
+            color: rgba(195, 162, 90, 0.6);
+            letter-spacing: 0;
+            font-family: Cinzel, Georgia, serif;
+        }
+        #page-heartrate .hr-element-orb {
+            display: block;
+            width: 2.75rem;
+            height: 2.75rem;
+            border-radius: 50%;
+            border: 1px solid rgba(195, 162, 90, 0.25);
+            background:
+                radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.55) 0%, transparent 42%),
+                radial-gradient(circle at 50% 55%, var(--orb-mid) 0%, var(--orb-deep) 100%);
+            box-shadow: 0 0 18px var(--orb-glow), inset 0 0 14px rgba(255, 255, 255, 0.12);
+        }
+        #page-heartrate .hr-element-orb--water {
+            --orb-mid: rgba(160, 195, 220, 0.45);
+            --orb-deep: rgba(84, 120, 150, 0.2);
+            --orb-glow: rgba(140, 185, 215, 0.22);
+        }
+        #page-heartrate .hr-element-orb--fire {
+            --orb-mid: rgba(226, 120, 110, 0.5);
+            --orb-deep: rgba(179, 36, 60, 0.25);
+            --orb-glow: rgba(226, 92, 112, 0.28);
+        }
+        #page-heartrate .hr-element-orb--wind {
+            --orb-mid: rgba(220, 210, 235, 0.45);
+            --orb-deep: rgba(160, 150, 180, 0.18);
+            --orb-glow: rgba(200, 190, 220, 0.2);
+        }
+        #page-heartrate .hr-element-orb--earth {
+            --orb-mid: rgba(195, 170, 130, 0.45);
+            --orb-deep: rgba(120, 95, 70, 0.22);
+            --orb-glow: rgba(195, 162, 90, 0.22);
+        }
+        #page-heartrate .hr-element-orb--void {
+            --orb-mid: rgba(179, 36, 60, 0.25);
+            --orb-deep: rgba(84, 13, 26, 0.12);
+            --orb-glow: rgba(179, 36, 60, 0.15);
+        }
+
+        /* 标题旁极简符号 */
+        #page-heartrate .hr-mark {
+            display: inline-block;
+            width: 0.45rem;
+            height: 0.45rem;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(179, 36, 60, 0.7), rgba(179, 36, 60, 0.15));
+            box-shadow: 0 0 6px rgba(179, 36, 60, 0.25);
+            vertical-align: middle;
+        }
+        #page-heartrate .hr-mark-diamond {
+            width: 0.4rem;
+            height: 0.4rem;
+            border-radius: 0;
+            transform: rotate(45deg);
+            background: rgba(179, 36, 60, 0.35);
+            box-shadow: none;
+        }
+        #page-heartrate .hr-mark-ring {
+            width: 0.55rem;
+            height: 0.55rem;
+            border-radius: 50%;
+            background: transparent;
+            border: 1px solid rgba(179, 36, 60, 0.45);
+            box-shadow: 0 0 8px rgba(179, 36, 60, 0.15);
+        }
+        #page-heartrate .hr-heart-mark {
+            display: inline-block;
+            width: 0.35rem;
+            height: 0.35rem;
+            margin-right: 0.25rem;
+            vertical-align: 0.1em;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(226, 92, 112, 0.9), rgba(179, 36, 60, 0.35));
+            box-shadow: 0 0 8px rgba(179, 36, 60, 0.35);
+        }
+        #page-heartrate .hr-icon-mail {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1rem;
+            border: 1px solid rgba(179, 36, 60, 0.4);
+            border-radius: 2px;
+            position: relative;
+            opacity: 0.7;
+        }
+        #page-heartrate .hr-icon-mail::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 2px;
+            width: 0.65rem;
+            height: 0.65rem;
+            border-top: 1px solid rgba(179, 36, 60, 0.45);
+            border-right: 1px solid rgba(179, 36, 60, 0.45);
+            transform: translateX(-50%) rotate(-45deg) skew(8deg);
+        }
+
+        /* 自定义下拉选单与文本框的典雅复古风格 */
+        .sacred-input {
+            background-color: rgba(250, 246, 237, 0.9) !important;
+            border: 1px solid rgba(195, 162, 90, 0.3) !important;
+            color: var(--text-ink) !important;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+        .sacred-input:focus {
+            border-color: var(--love-main) !important;
+            box-shadow: 0 0 10px rgba(179, 36, 60, 0.1);
+        }
+
+        /* 信纸横格轻微纹理 (Lined Paper Metaphor) */
+        .lined-paper {
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 27px, rgba(179, 36, 60, 0.08) 27px, rgba(179, 36, 60, 0.08) 28px);
+            background-size: 100% 28px;
+        }
+
+/* localhost 下 Tailwind 偶发未加载时的宿缘页兜底（不改变正常加载时的表现） */
+html.no-tailwind #page-heartrate .hidden {
+    display: none !important;
+}
+html.no-tailwind #page-heartrate .opacity-0 { opacity: 0; }
+html.no-tailwind #page-heartrate .opacity-100 { opacity: 1; }
+html.no-tailwind #page-heartrate .text-venus-deep { color: #540D1A; }
+html.no-tailwind #page-heartrate .text-venus-red { color: #B3243C; }
+html.no-tailwind #page-heartrate .text-venus-ink { color: #2B1A1D; }
+html.no-tailwind #page-heartrate .text-venus-gold { color: #C3A25A; }
+html.no-tailwind #page-heartrate .bg-venus-parchment { background-color: #F5EFEB; }
+html.no-tailwind #page-heartrate .font-serif { font-family: Cinzel, Georgia, serif; }
+html.no-tailwind #page-heartrate .w-full { width: 100%; }
+html.no-tailwind #page-heartrate .flex { display: flex; }
+html.no-tailwind #page-heartrate .flex-col { flex-direction: column; }
+html.no-tailwind #page-heartrate .items-center { align-items: center; }
+html.no-tailwind #page-heartrate .justify-center { justify-content: center; }
+html.no-tailwind #page-heartrate .text-center { text-align: center; }
+html.no-tailwind #page-heartrate .grid { display: grid; }
+html.no-tailwind #page-heartrate #screen-input-both .grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+@media (min-width: 1024px) {
+    html.no-tailwind #page-heartrate #screen-input-both .grid {
+        grid-template-columns: repeat(21, minmax(0, 1fr));
+    }
+    html.no-tailwind #page-heartrate #screen-input-both .grid > *:nth-child(1),
+    html.no-tailwind #page-heartrate #screen-input-both .grid > *:nth-child(3) {
+        grid-column: span 10 / span 10;
+    }
+    html.no-tailwind #page-heartrate #screen-input-both .grid > *:nth-child(2) {
+        display: flex;
+        grid-column: span 1 / span 1;
+        justify-content: center;
+        align-items: center;
+    }
+}
