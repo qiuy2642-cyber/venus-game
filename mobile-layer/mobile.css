@@ -50,9 +50,13 @@
         overflow-x: hidden;
     }
 
-    /* Hide camera preview only — keep particles, cards, ritual UI */
+    /* Hide cam preview in divination UI only; meditation moves preview to body via JS */
     html.vn-mobile-active #divination-stage #cam-preview {
         display: none !important;
+    }
+
+    html.vn-mobile-active #cam-preview.vn-meditation-cam-mount {
+        display: block !important;
     }
 
     html.vn-mobile-active #divination-stage .divine-ui {
