@@ -1,11 +1,12 @@
 /**
  * 轻量 SW：只缓存壳与 PWA 图标，不缓存 MediaPipe WASM / CDN
  */
-var CACHE_SHELL = 'vn-shell-v2-dog';
+var CACHE_SHELL = 'vn-shell-v3-edge';
 var SHELL_ASSETS = [
-    '/',
-    '/index.html',
     '/manifest.json',
+    '/icon-192.png',
+    '/icon-512.png',
+    '/assets/pwa/icon-256.png',
     '/assets/pwa/icon-192.png',
     '/assets/pwa/icon-512.png',
     '/assets/pwa/icon-512-maskable.png',
