@@ -1,5 +1,5 @@
 /**
- * Mobile layer — portrait-first, desktop art, touch-only divination.
+ * Mobile layer entry.
  */
 (function () {
     'use strict';
@@ -12,22 +12,34 @@
         document.head.appendChild(s);
     }
 
-    function boot() {
-        if (!window.VNMobileDetect || !window.VNMobileDetect.isMobileLayer()) return;
-
+    function bootApp() {
         document.documentElement.classList.add('vn-mobile-active');
 
-        loadScript('mobile-layer/camera-guard.js', function () {
+        loadScript('mobile-layer/scene-cleanup.js', function () {
+            if (window.VNSceneCleanup) window.VNSceneCleanup.start();
             loadScript('mobile-layer/vn-shortcut.js', function () {
                 if (window.VNVnShortcut) window.VNVnShortcut.start();
-                loadScript('mobile-layer/divination-touch.js', function () {
-                    loadScript('mobile-layer/mobile-root.js', function () {
-                        if (window.VNMobileRoot) window.VNMobileRoot.start();
+                loadScript('mobile-layer/meditation-fallback.js', function () {
+                    if (window.VNMeditationFallback) window.VNMeditationFallback.start();
+                    loadScript('mobile-layer/divination-touch.js', function () {
+                        loadScript('mobile-layer/mobile-root.js', function () {
+                            if (window.VNMobileRoot) window.VNMobileRoot.start();
+                        });
                     });
                 });
             });
         });
     }
 
-    loadScript('mobile-layer/detect.js', boot);
+    function start() {
+        if (window.VNMobileDetect && window.VNMobileDetect.isMobileLayer()) {
+            bootApp();
+        }
+    }
+
+    if (window.VNMobileDetect) {
+        start();
+    } else {
+        loadScript('mobile-layer/detect.js', start);
+    }
 })();

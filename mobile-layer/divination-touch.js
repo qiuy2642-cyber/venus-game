@@ -1,13 +1,11 @@
 /**
- * Mobile touch driver for desktop .divine-card-item (same art, portrait spacing).
+ * Touch → desktop divination DOM. Ritual: swipe → tap center → long press → flip.
  */
 (function (global) {
     'use strict';
 
     var LONG_MS = 3000;
     var RITUAL_MS = 4000;
-    var EXTRACTED_CARD_W = 264;
-    var EXTRACTED_CARD_H = 449;
 
     var activeIdx = 3;
     var isExtracted = false;
@@ -25,11 +23,11 @@
     }
 
     function mobileStep() {
-        return Math.round(Math.min(72, Math.max(42, window.innerWidth * 0.12)));
+        return Math.round(Math.min(68, Math.max(40, window.innerWidth * 0.11)));
     }
 
     function mobileHalfW() {
-        return Math.round(Math.min(70, Math.max(52, window.innerWidth * 0.18)));
+        return Math.round(Math.min(72, Math.max(50, window.innerWidth * 0.19)));
     }
 
     function setLabels(main, sub) {
@@ -54,14 +52,16 @@
         if (!card) return;
         var portal = getPortal();
         if (card.parentElement !== portal) portal.appendChild(card);
+        var w = Math.min(264, Math.round(window.innerWidth * 0.52));
+        var h = Math.round(w * 1.7);
         card.style.setProperty('transition', 'none', 'important');
         card.style.setProperty('position', 'fixed', 'important');
         card.style.setProperty('left', '0', 'important');
         card.style.setProperty('right', '0', 'important');
         card.style.setProperty('top', '0', 'important');
         card.style.setProperty('bottom', '0', 'important');
-        card.style.setProperty('width', EXTRACTED_CARD_W + 'px', 'important');
-        card.style.setProperty('height', EXTRACTED_CARD_H + 'px', 'important');
+        card.style.setProperty('width', w + 'px', 'important');
+        card.style.setProperty('height', h + 'px', 'important');
         card.style.setProperty('margin', 'auto', 'important');
         card.style.setProperty('transform', 'none', 'important');
         card.style.setProperty('opacity', '1', 'important');
@@ -78,13 +78,16 @@
             if (c.classList.contains('extracted') || c.classList.contains('flipped')) return;
             var offset = i - activeIdx;
             var tx = offset * step;
-            var tz = Math.abs(offset) * -120;
-            var ry = offset * 18;
+            var tz = Math.abs(offset) * -200;
+            var ry = offset * 22;
+            var dist = Math.abs(offset);
             c.style.left = '50%';
             c.style.marginLeft = -half + 'px';
             c.style.transform = 'translateX(' + tx + 'px) translateZ(' + tz + 'px) rotateY(' + ry + 'deg)';
-            c.style.opacity = String(1 - Math.abs(offset) * 0.32);
-            c.style.zIndex = String(100 - Math.abs(offset));
+            c.style.opacity = String(Math.max(0.08, 1 - dist * 0.35));
+            c.style.zIndex = String(100 - dist);
+            c.style.filter = dist > 2 ? 'blur(1px)' : 'none';
+            c.style.transition = 'transform 0.55s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.55s ease, filter 0.4s ease';
         });
     }
 
@@ -96,30 +99,14 @@
         if (aura) aura.style.display = 'none';
         var ring = document.querySelector('#ritual-progress circle');
         if (ring) ring.style.strokeDashoffset = '283';
-        var curtain = document.getElementById('divine-curtain');
-        if (curtain) curtain.classList.remove('shrouded');
     }
 
-    function processRitual() {
-        if (paused || !extractedEl || extractedEl.classList.contains('flipped')) return;
-        var aura = document.getElementById('ritual-aura');
-        var ring = document.querySelector('#ritual-progress circle');
+    function setShrouded(on) {
         var curtain = document.getElementById('divine-curtain');
-        if (aura) aura.style.display = 'flex';
-        if (curtain) curtain.classList.add('shrouded');
-        if (!ritualStartTime) ritualStartTime = Date.now();
-        var progress = Math.min((Date.now() - ritualStartTime) / RITUAL_MS, 1);
-        if (ring) ring.style.strokeDashoffset = String(283 - progress * 283);
-        if (progress >= 1) {
-            extractedEl.classList.add('flipped');
-            applyPortalCardLayout(extractedEl);
-            resetRitual();
-            if (curtain) curtain.classList.add('shrouded');
-            setLabels('✧ 祈愿已传达 ✧', '点击背面按钮归还记忆');
-            if (typeof global.showToast === 'function') global.showToast('命运已揭晓');
-            return;
+        if (curtain) {
+            if (on) curtain.classList.add('shrouded');
+            else curtain.classList.remove('shrouded');
         }
-        ritualRaf = requestAnimationFrame(processRitual);
     }
 
     function extractCard() {
@@ -130,8 +117,32 @@
         applyPortalCardLayout(extractedEl);
         var row = document.getElementById('divine-card-row');
         if (row) row.classList.add('cards-dismissed');
-        updateCardsPosition();
+        setShrouded(false);
+        resetRitual();
         if (typeof global.showToast === 'function') global.showToast('已锁定命运之牌');
+        setLabels('命运之牌已就位', '长按屏幕 3 秒，松手开始祈愿');
+    }
+
+    function processRitual() {
+        if (paused || !extractedEl || extractedEl.classList.contains('flipped')) return;
+        var aura = document.getElementById('ritual-aura');
+        var ring = document.querySelector('#ritual-progress circle');
+        setShrouded(true);
+        if (aura) aura.style.display = 'flex';
+        setLabels(' 抵住下巴，虔诚许愿', '保持长按…');
+        if (!ritualStartTime) ritualStartTime = Date.now();
+        var progress = Math.min((Date.now() - ritualStartTime) / RITUAL_MS, 1);
+        if (ring) ring.style.strokeDashoffset = String(283 - progress * 283);
+        if (progress >= 1) {
+            extractedEl.classList.add('flipped');
+            applyPortalCardLayout(extractedEl);
+            resetRitual();
+            setShrouded(true);
+            setLabels('✧ 祈愿已传达 ✧', '点击背面按钮归还记忆');
+            if (typeof global.showToast === 'function') global.showToast('命运已揭晓');
+            return;
+        }
+        ritualRaf = requestAnimationFrame(processRitual);
     }
 
     function clearLong() {
@@ -146,12 +157,10 @@
         ptr.y = e.clientY;
         ptr.t = Date.now();
         clearLong();
-        if (!isExtracted) {
+        if (isExtracted && extractedEl && !extractedEl.classList.contains('flipped')) {
             longTimer = setTimeout(function () {
-                if (!isExtracted) {
-                    longReady = true;
-                    setLabels('✧ 可以松手了 ✧', '松开以祈愿翻面');
-                }
+                longReady = true;
+                setLabels('✧ 可以松手祈愿 ✧', '松手后命运之环将闭合');
             }, LONG_MS);
         }
     }
@@ -160,38 +169,35 @@
         var dx = e.clientX - ptr.x;
         var dy = e.clientY - ptr.y;
         var elapsed = Date.now() - ptr.t;
-        var th = Math.max(36, window.innerWidth * 0.08);
+        var th = Math.max(32, window.innerWidth * 0.08);
 
-        if (longReady && !isExtracted) {
+        if (isExtracted && longReady && extractedEl && !extractedEl.classList.contains('flipped')) {
             clearLong();
-            extractCard();
-            setLabels('松开启动祈愿', '虔诚凝视…');
             ritualStartTime = 0;
             ritualRaf = requestAnimationFrame(processRitual);
             return;
         }
-
         clearLong();
 
-        if (!isExtracted) {
-            if (elapsed < 450 && Math.abs(dx) < th * 0.7 && Math.abs(dy) < th * 0.7) {
-                var row = document.getElementById('divine-card-row');
-                if (row) {
-                    var rect = row.getBoundingClientRect();
-                    var ratio = (e.clientX - rect.left) / Math.max(rect.width, 1);
-                    activeIdx = Math.min(6, Math.max(0, Math.round(ratio * 6)));
-                }
-                setLabels('已选中第 ' + (activeIdx + 1) + ' 张', '长按 3 秒后松手翻面');
-                updateCardsPosition();
-                return;
+        if (isExtracted) return;
+
+        if (elapsed < 450 && Math.abs(dx) < th * 0.7 && Math.abs(dy) < th * 0.7) {
+            var row = document.getElementById('divine-card-row');
+            if (row) {
+                var rect = row.getBoundingClientRect();
+                var ratio = (e.clientX - rect.left) / Math.max(rect.width, 1);
+                activeIdx = Math.min(6, Math.max(0, Math.round(ratio * 6)));
             }
-            if (Math.abs(dx) >= th && Math.abs(dx) > Math.abs(dy)) {
-                if (dx < 0 && activeIdx < 6) activeIdx += 1;
-                if (dx > 0 && activeIdx > 0) activeIdx -= 1;
-                updateCardsPosition();
-                setLabels('← 左右滑动巡视星轨 →', '点击选中 · 长按 3 秒松手翻面');
-            }
+            updateCardsPosition();
+            extractCard();
             return;
+        }
+
+        if (Math.abs(dx) >= th && Math.abs(dx) > Math.abs(dy)) {
+            if (dx < 0 && activeIdx < 6) activeIdx += 1;
+            if (dx > 0 && activeIdx > 0) activeIdx -= 1;
+            updateCardsPosition();
+            setLabels('← 左右滑动巡视星轨 →', '点击卡牌以锁定命运');
         }
     }
 
@@ -217,9 +223,10 @@
         clearLong();
     }
 
-    function teardown() {
+    function forceTeardown() {
         unbindRoot();
         resetRitual();
+        setShrouded(false);
         isExtracted = false;
         extractedEl = null;
         activeIdx = 3;
@@ -228,24 +235,29 @@
 
     function onStageChange(visible) {
         if (!visible) {
-            teardown();
+            forceTeardown();
             if (global.VNMobileRoot) global.VNMobileRoot.hideTouchLayer();
+            if (global.VNSceneCleanup) global.VNSceneCleanup.resetViewport();
             return;
         }
         if (global.VNCameraGuard) global.VNCameraGuard.onDivinationOpen();
         if (global.VNMobileRoot) global.VNMobileRoot.showTouchLayer();
         bindRoot();
-        setLabels('← 左右滑动巡视星轨 →', '点击选中 · 长按 3 秒松手翻面');
+        setLabels('← 左右滑动巡视星轨 →', '点击卡牌以锁定命运');
         global.setTimeout(function () {
             activeIdx = 3;
             isExtracted = false;
             extractedEl = null;
+            setShrouded(false);
+            var row = document.getElementById('divine-card-row');
+            if (row) row.classList.remove('cards-dismissed');
             updateCardsPosition();
         }, 1100);
     }
 
     global.VNDivinationTouch = {
         onStageChange: onStageChange,
+        forceTeardown: forceTeardown,
         pause: function () { paused = true; },
         resume: function () {
             paused = false;

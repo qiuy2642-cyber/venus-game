@@ -1,11 +1,12 @@
 /**
- * Mobile-only: block Hand tracking & auto camera outside meditation.
- * FaceMesh / meditation camera still allowed. Desktop never loads this file.
+ * Mobile: block Hands; camera only when meditation allows; silent early getUserMedia.
  */
 (function (global) {
     'use strict';
 
     if (!global.VNMobileDetect || !global.VNMobileDetect.isMobileLayer()) return;
+
+    global.__vnMeditationWantsCamera = false;
 
     function isMeditationActive() {
         var page = document.getElementById('page-meditation');
@@ -13,11 +14,23 @@
     }
 
     function shouldAllowCamera() {
-        return isMeditationActive();
+        return !!(
+            global.__vnMeditationWantsCamera ||
+            global.__vnMeditationFlowActive ||
+            isMeditationActive()
+        );
     }
 
     function shouldAllowHands() {
         return false;
+    }
+
+    function fakeVideoStream() {
+        var canvas = document.createElement('canvas');
+        canvas.width = 640;
+        canvas.height = 480;
+        var stream = canvas.captureStream(0);
+        return Promise.resolve(stream);
     }
 
     function stopInputVideoTracks() {
@@ -36,10 +49,12 @@
         if (global.__vnGUMPatched || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) return;
         var orig = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
         navigator.mediaDevices.getUserMedia = function (constraints) {
-            if (!shouldAllowCamera()) {
-                return Promise.reject(new DOMException('Mobile camera only for meditation', 'NotAllowedError'));
+            if (shouldAllowCamera()) {
+                return orig(constraints).catch(function () {
+                    return fakeVideoStream();
+                });
             }
-            return orig(constraints);
+            return fakeVideoStream();
         };
         global.__vnGUMPatched = true;
     }
@@ -118,6 +133,9 @@
 
     global.VNCameraGuard = {
         stopTracks: stopInputVideoTracks,
+        setMeditationCamera: function (on) {
+            global.__vnMeditationWantsCamera = !!on;
+        },
         onDivinationOpen: stopInputVideoTracks,
         onDivinationClose: function () {
             if (!isMeditationActive()) stopInputVideoTracks();

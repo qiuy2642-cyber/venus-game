@@ -7,3 +7,15 @@
         margin-bottom: 18px;
     }
 }
+
+@media (pointer: coarse) {
+    #page-meditation .vn-m-fallback-hint {
+        font-size: 0.65rem;
+        letter-spacing: 0.12em;
+        color: #e0c9a6;
+        opacity: 0.85;
+        text-align: center;
+        margin-top: 12px;
+        padding: 0 16px;
+    }
+}

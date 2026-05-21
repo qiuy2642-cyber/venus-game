@@ -2,12 +2,35 @@
  * Mobile portrait: scale desktop divination art — do not replace structure.
  */
 @media (pointer: coarse) {
+    html.vn-mobile-active,
+    html.vn-mobile-active body {
+        overflow-x: hidden !important;
+        max-width: 100vw;
+        width: 100%;
+        touch-action: manipulation;
+    }
+
     html.vn-mobile-active {
         height: 100%;
     }
 
     html.vn-mobile-active body {
         padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+        position: relative;
+    }
+
+    html.vn-mobile-active .page {
+        max-width: 100vw;
+        overflow-x: hidden;
+        width: 100%;
+    }
+
+    html.vn-mobile-active #page3,
+    html.vn-mobile-active #page4,
+    html.vn-mobile-active .menu-list,
+    html.vn-mobile-active .love-hub-container {
+        max-width: 100vw;
+        overflow-x: hidden;
     }
 
     /* Hide camera preview only — keep particles, cards, ritual UI */
@@ -36,15 +59,21 @@
     }
 
     html.vn-mobile-active #divination-stage .card-row {
-        height: min(42vh, 300px);
-        perspective: 1400px;
+        height: min(44vh, 320px);
+        perspective: 2200px;
         width: 100%;
         max-width: 100vw;
+        overflow: visible;
     }
 
     html.vn-mobile-active #divination-stage .divine-card-item {
-        width: min(36vw, 140px);
-        height: min(58vw, 238px);
+        width: min(38vw, 148px);
+        height: min(62vw, 252px);
+    }
+
+    html.vn-mobile-active #divination-stage #divine-curtain.shrouded {
+        background: rgba(26, 20, 16, 0.7);
+        backdrop-filter: blur(5px);
     }
 
     html.vn-mobile-active #divination-stage #divine-card-portal > .divine-card-item.extracted,
