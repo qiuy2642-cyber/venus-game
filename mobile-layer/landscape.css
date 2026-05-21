@@ -1,0 +1,21 @@
+@media (pointer: coarse) and (orientation: landscape) {
+    #vn-mobile-root .vn-m-card-row {
+        height: 55vh;
+    }
+}
+
+@media (pointer: coarse) and (orientation: portrait) {
+    #vn-mobile-root::before {
+        content: '请旋转至横屏以获得完整仪式体验';
+        position: absolute;
+        bottom: 12%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.72rem;
+        letter-spacing: 0.1em;
+        opacity: 0.85;
+        z-index: 2;
+        pointer-events: none;
+        white-space: nowrap;
+    }
+}

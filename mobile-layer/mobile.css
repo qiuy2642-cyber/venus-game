@@ -1,0 +1,163 @@
+/**
+ * Styles only inside #vn-mobile-root (mobile-owned DOM).
+ */
+@media (pointer: coarse) {
+    #vn-mobile-root {
+        position: fixed;
+        z-index: 2147482000;
+        box-sizing: border-box;
+        pointer-events: auto;
+        touch-action: none;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(253, 253, 245, 0.94);
+        font-family: inherit;
+        color: #3d2914;
+        overflow: hidden;
+    }
+
+    #vn-mobile-root[hidden] {
+        display: none !important;
+        pointer-events: none;
+    }
+
+    #vn-mobile-root .vn-m-exit {
+        position: absolute;
+        top: max(8px, env(safe-area-inset-top, 0px));
+        left: max(8px, env(safe-area-inset-left, 0px));
+        z-index: 5;
+        padding: 6px 12px;
+        font-size: 0.6rem;
+        border: 1px solid #8b5a2b;
+        background: rgba(253, 253, 245, 0.9);
+        color: #5a3d1e;
+    }
+
+    #vn-mobile-root .vn-m-hint-main {
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        margin-bottom: 4px;
+        text-align: center;
+    }
+
+    #vn-mobile-root .vn-m-hint-sub {
+        font-size: 0.62rem;
+        opacity: 0.65;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+
+    #vn-mobile-root .vn-m-card-row {
+        position: relative;
+        width: 100%;
+        height: 48vh;
+        max-height: 320px;
+    }
+
+    #vn-mobile-root .vn-m-card {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 120px;
+        height: 200px;
+        margin-left: -60px;
+        margin-top: -100px;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+    }
+
+    #vn-mobile-root .vn-m-card-inner {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.8s ease;
+    }
+
+    #vn-mobile-root .vn-m-card-inner.vn-m-flipped {
+        transform: rotateY(180deg);
+    }
+
+    #vn-mobile-root .vn-m-face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        border: 1px solid #c4a484;
+        border-radius: 8px;
+        background: linear-gradient(145deg, #fdfdf5, #e8dcc8);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+        box-sizing: border-box;
+    }
+
+    #vn-mobile-root .vn-m-back {
+        transform: rotateY(180deg);
+        font-size: 0.55rem;
+        line-height: 1.5;
+    }
+
+    #vn-mobile-root .vn-m-title {
+        font-size: 1rem;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    #vn-mobile-root .vn-m-dismiss {
+        margin-top: 12px;
+        padding: 4px 12px;
+        font-size: 0.55rem;
+        border: 1px solid #8b5a2b;
+        background: transparent;
+        color: #5a3d1e;
+    }
+
+    #vn-mobile-root .vn-m-focus-slot {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 52vh;
+    }
+
+    #vn-mobile-root .vn-m-card--focus {
+        position: relative;
+        left: auto;
+        top: auto;
+        margin: 0;
+        width: 200px;
+        height: 320px;
+    }
+
+    #vn-mobile-root .vn-m-ritual {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        pointer-events: none;
+    }
+
+    #vn-mobile-root .vn-m-ritual[hidden] {
+        display: none;
+    }
+
+    #vn-mobile-root .vn-m-ritual svg {
+        width: 100px;
+        height: 100px;
+    }
+
+    #vn-mobile-root .vn-m-ring {
+        fill: none;
+        stroke: #c4a484;
+        stroke-width: 4;
+        stroke-dasharray: 283;
+        stroke-dashoffset: 283;
+        transform: rotate(-90deg);
+        transform-origin: 50% 50%;
+    }
+}
