@@ -1,7 +1,27 @@
 /**
- * Styles only inside #vn-mobile-root (mobile-owned DOM).
+ * Mobile-only styles: #vn-mobile-root + coarse-pointer divination shell.
  */
 @media (pointer: coarse) {
+    html.vn-mobile-active {
+        height: 100%;
+    }
+
+    html.vn-mobile-active body {
+        padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+    }
+
+    /* Hide desktop camera / particle canvas during mobile divination (visual only) */
+    html.vn-mobile-active #divination-stage #cam-preview,
+    html.vn-mobile-active #divination-stage #divine-canvas {
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    html.vn-mobile-active #divination-stage .divine-hint-bar {
+        visibility: hidden;
+    }
+
     #vn-mobile-root {
         position: fixed;
         z-index: 2147482000;
@@ -12,7 +32,8 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        background: rgba(253, 253, 245, 0.94);
+        padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+        background: rgba(253, 253, 245, 0.96);
         font-family: inherit;
         color: #3d2914;
         overflow: hidden;
@@ -40,6 +61,7 @@
         letter-spacing: 0.15em;
         margin-bottom: 4px;
         text-align: center;
+        max-width: 92vw;
     }
 
     #vn-mobile-root .vn-m-hint-sub {
@@ -47,23 +69,24 @@
         opacity: 0.65;
         margin-bottom: 12px;
         text-align: center;
+        max-width: 92vw;
     }
 
     #vn-mobile-root .vn-m-card-row {
         position: relative;
-        width: 100%;
-        height: 48vh;
-        max-height: 320px;
+        width: min(100%, 520px);
+        height: min(52vh, 280px);
+        flex: 0 0 auto;
     }
 
     #vn-mobile-root .vn-m-card {
         position: absolute;
         left: 50%;
         top: 50%;
-        width: 120px;
-        height: 200px;
-        margin-left: -60px;
-        margin-top: -100px;
+        width: min(28vw, 120px);
+        height: min(46vw, 200px);
+        margin-left: min(-14vw, -60px);
+        margin-top: min(-23vw, -100px);
         transition: transform 0.2s ease, opacity 0.2s ease;
     }
 
@@ -117,10 +140,11 @@
 
     #vn-mobile-root .vn-m-focus-slot {
         width: 100%;
+        max-width: 520px;
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 52vh;
+        min-height: min(56vh, 300px);
     }
 
     #vn-mobile-root .vn-m-card--focus {
@@ -128,8 +152,8 @@
         left: auto;
         top: auto;
         margin: 0;
-        width: 200px;
-        height: 320px;
+        width: min(42vw, 200px);
+        height: min(68vw, 320px);
     }
 
     #vn-mobile-root .vn-m-ritual {

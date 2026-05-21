@@ -7,6 +7,12 @@
     'use strict';
 
     var STEP = 72;
+
+    function cardStep() {
+        var r = root();
+        if (!r) return STEP;
+        return Math.max(56, Math.min(88, Math.round(r.clientWidth * 0.14)));
+    }
     var LONG_MS = 3000;
     var RITUAL_MS = 4000;
 
@@ -17,7 +23,8 @@
     var ritualRaf = 0;
     var longTimer = null;
     var longReady = false;
-    var ptr = { x: 0, y: 0, t: 0, idx: -1 };
+    var ptr = { x: 0, y: 0, t: 0, idx: -1, cardEl: null };
+    var paused = false;
     var bound = false;
     var ui = {};
 
@@ -110,7 +117,8 @@
     function layoutBrowse() {
         ui.cards.forEach(function (c, i) {
             var off = i - activeIdx;
-            c.style.transform = 'translateX(' + (off * STEP) + 'px) scale(' + (i === activeIdx ? 1 : 0.88) + ')';
+            var step = cardStep();
+            c.style.transform = 'translateX(' + (off * step) + 'px) scale(' + (i === activeIdx ? 1 : 0.88) + ')';
             c.style.opacity = String(1 - Math.abs(off) * 0.28);
             c.style.zIndex = String(10 - Math.abs(off));
         });
@@ -147,7 +155,7 @@
     }
 
     function ritualLoop() {
-        if (!ui.ritual || phase !== 'ritual') return;
+        if (paused || !ui.ritual || phase !== 'ritual') return;
         ui.ritual.hidden = false;
         if (!ritualStart) ritualStart = Date.now();
         var p = Math.min((Date.now() - ritualStart) / RITUAL_MS, 1);
@@ -176,6 +184,7 @@
         ptr.y = e.clientY;
         ptr.t = Date.now();
         ptr.idx = activeIdx;
+        ptr.cardEl = e.target && e.target.closest ? e.target.closest('.vn-m-card[data-idx]') : null;
         clearLong();
         if (phase === 'browse') {
             longTimer = setTimeout(function () {
@@ -188,7 +197,6 @@
     }
 
     function onPointerUp(e) {
-        var r = root();
         var dx = e.clientX - ptr.x;
         var dy = e.clientY - ptr.y;
         var elapsed = Date.now() - ptr.t;
@@ -207,8 +215,7 @@
 
         if (phase === 'browse') {
             if (elapsed < 400 && Math.abs(dx) < 28 && Math.abs(dy) < 28) {
-                var el = document.elementFromPoint(e.clientX, e.clientY);
-                var card = el && el.closest ? el.closest('.vn-m-card[data-idx]') : null;
+                var card = ptr.cardEl;
                 if (card && card.dataset.idx) activeIdx = parseInt(card.dataset.idx, 10);
                 setHint('已选中第 ' + (activeIdx + 1) + ' 张', '长按 3 秒后松手翻面');
                 layoutBrowse();
@@ -271,6 +278,7 @@
             teardown();
             return;
         }
+        if (global.VNCameraGuard) global.VNCameraGuard.onDivinationOpen();
         buildMirrorDOM();
         bindRoot();
         layoutBrowse();
@@ -278,5 +286,9 @@
         if (global.VNMobileRoot) global.VNMobileRoot.align();
     }
 
-    global.VNDivinationMirror = { onStageChange: onStageChange };
+    global.VNDivinationMirror = {
+        onStageChange: onStageChange,
+        pause: function () { paused = true; },
+        resume: function () { paused = false; if (phase === 'ritual') ritualRaf = requestAnimationFrame(ritualLoop); }
+    };
 })(typeof window !== 'undefined' ? window : global);

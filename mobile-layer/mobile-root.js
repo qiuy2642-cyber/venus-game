@@ -6,6 +6,8 @@
 
     var root = null;
     var stageObserver = null;
+    var alignRaf = 0;
+    var alignActive = false;
 
     function ensureRoot() {
         if (root && root.isConnected) return root;
@@ -14,6 +16,9 @@
         root.setAttribute('aria-live', 'polite');
         root.hidden = true;
         document.body.appendChild(root);
+        root.addEventListener('pointerdown', function () {
+            if (global.VNLandscapeMode) global.VNLandscapeMode.tryLockLandscape();
+        }, { passive: true, once: false });
         return root;
     }
 
@@ -22,6 +27,7 @@
         var stage = document.getElementById('divination-stage');
         if (!stage || stage.style.display !== 'flex') {
             root.hidden = true;
+            stopAlignLoop();
             return;
         }
         var rect = stage.getBoundingClientRect();
@@ -33,9 +39,39 @@
     }
 
     function notifyStage(visible) {
+        if (visible) {
+            if (global.VNCameraGuard) global.VNCameraGuard.onDivinationOpen();
+            if (global.VNLandscapeMode) global.VNLandscapeMode.tryLockLandscape();
+        } else if (global.VNCameraGuard) {
+            global.VNCameraGuard.onDivinationClose();
+        }
         if (global.VNDivinationMirror && typeof global.VNDivinationMirror.onStageChange === 'function') {
             global.VNDivinationMirror.onStageChange(visible);
         }
+    }
+
+    function stopAlignLoop() {
+        alignActive = false;
+        if (alignRaf) {
+            cancelAnimationFrame(alignRaf);
+            alignRaf = 0;
+        }
+    }
+
+    function startAlignLoop() {
+        if (alignActive) return;
+        alignActive = true;
+        var tick = function () {
+            if (!alignActive) return;
+            var stage = document.getElementById('divination-stage');
+            if (root && stage && stage.style.display === 'flex') {
+                alignToDivinationStage();
+                alignRaf = requestAnimationFrame(tick);
+            } else {
+                stopAlignLoop();
+            }
+        };
+        alignRaf = requestAnimationFrame(tick);
     }
 
     function startStageWatch() {
@@ -44,8 +80,13 @@
         if (!stage) return;
         var sync = function () {
             var visible = stage.style.display === 'flex';
-            if (visible) alignToDivinationStage();
-            else if (root) root.hidden = true;
+            if (visible) {
+                alignToDivinationStage();
+                startAlignLoop();
+            } else {
+                if (root) root.hidden = true;
+                stopAlignLoop();
+            }
             notifyStage(visible);
         };
         stageObserver = new MutationObserver(sync);
@@ -53,13 +94,19 @@
         sync();
     }
 
-    function startAlignLoop() {
-        var tick = function () {
+    function onVisibilityChange() {
+        if (document.hidden) {
+            stopAlignLoop();
+            if (global.VNDivinationMirror && global.VNDivinationMirror.pause) {
+                global.VNDivinationMirror.pause();
+            }
+        } else {
             var stage = document.getElementById('divination-stage');
-            if (root && stage && stage.style.display === 'flex') alignToDivinationStage();
-            requestAnimationFrame(tick);
-        };
-        requestAnimationFrame(tick);
+            if (stage && stage.style.display === 'flex') startAlignLoop();
+            if (global.VNDivinationMirror && global.VNDivinationMirror.resume) {
+                global.VNDivinationMirror.resume();
+            }
+        }
     }
 
     function emit(detail) {
@@ -76,11 +123,12 @@
         start: function () {
             ensureRoot();
             startStageWatch();
-            startAlignLoop();
+            document.addEventListener('visibilitychange', onVisibilityChange);
         },
         emit: emit,
         hide: function () {
             if (root) root.hidden = true;
+            stopAlignLoop();
         }
     };
 })(typeof window !== 'undefined' ? window : global);

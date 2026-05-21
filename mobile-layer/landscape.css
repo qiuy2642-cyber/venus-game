@@ -1,21 +1,42 @@
-@media (pointer: coarse) and (orientation: landscape) {
-    #vn-mobile-root .vn-m-card-row {
-        height: 55vh;
+@media (pointer: coarse) {
+    #vn-mobile-orient-gate {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483646;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: rgba(20, 12, 8, 0.92);
+        color: #e8dcc8;
+        padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
+        text-align: center;
+        pointer-events: auto;
+    }
+
+    #vn-mobile-orient-gate[hidden] {
+        display: none !important;
+    }
+
+    #vn-mobile-orient-gate .vn-orient-msg {
+        font-size: 0.95rem;
+        letter-spacing: 0.2em;
+        margin-bottom: 8px;
+    }
+
+    #vn-mobile-orient-gate .vn-orient-sub {
+        font-size: 0.72rem;
+        opacity: 0.75;
+        letter-spacing: 0.12em;
+    }
+
+    html.vn-mobile-landscape #vn-mobile-orient-gate {
+        display: none !important;
     }
 }
 
-@media (pointer: coarse) and (orientation: portrait) {
-    #vn-mobile-root::before {
-        content: '请旋转至横屏以获得完整仪式体验';
-        position: absolute;
-        bottom: 12%;
-        left: 50%;
-        transform: translateX(-50%);
-        font-size: 0.72rem;
-        letter-spacing: 0.1em;
-        opacity: 0.85;
-        z-index: 2;
-        pointer-events: none;
-        white-space: nowrap;
+@media (pointer: coarse) and (orientation: landscape) {
+    #vn-mobile-root .vn-m-card-row {
+        height: min(58vh, 300px);
     }
 }

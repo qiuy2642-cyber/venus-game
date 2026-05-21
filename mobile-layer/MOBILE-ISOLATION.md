@@ -18,11 +18,16 @@
 | `divination-mirror.js` | 镜面触控：滑动 / 点击 / 长按 3 秒松手 → 祈愿环 → 翻面 |
 | `bootstrap.js` | coarse pointer 下加载上述模块 |
 
-## 已移除（违反规则）
+## Mobile 摄像头策略（`camera-guard.js`）
 
-- `vision-shim.js` — 曾 patch 全局 Hands/Camera
-- `meditation-perf.js` — 曾写全局 `__vnMeditationSkipFrame`
-- 对 `#divine-card-row` / `gesture-label` 等的写操作
+- 粗指针设备：**占卜阶段**禁止 `getUserMedia`、Hands `send`、Camera `onFrame`
+- **冥想阶段**（`#page-meditation.active`）允许摄像头 + FaceMesh
+- 占卜粒子 canvas 绘制在 mobile 占卜时被 noop（降低发热）
+
+## 横屏（`landscape-mode.js`）
+
+- 竖屏全屏提示；横屏尝试 `screen.orientation.lock('landscape')`
+- safe-area 由 `#vn-mobile-root` / orient-gate CSS 处理
 
 ## PWA
 

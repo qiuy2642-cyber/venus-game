@@ -1,5 +1,5 @@
 /**
- * Mobile layer entry — coarse pointer only. No global patches.
+ * Mobile layer entry — coarse pointer only.
  */
 (function () {
     'use strict';
@@ -15,9 +15,16 @@
     function boot() {
         if (!window.VNMobileDetect || !window.VNMobileDetect.isMobileLayer()) return;
 
-        loadScript('mobile-layer/divination-mirror.js', function () {
-            loadScript('mobile-layer/mobile-root.js', function () {
-                if (window.VNMobileRoot) window.VNMobileRoot.start();
+        document.documentElement.classList.add('vn-mobile-active');
+
+        loadScript('mobile-layer/camera-guard.js', function () {
+            loadScript('mobile-layer/landscape-mode.js', function () {
+                if (window.VNLandscapeMode) window.VNLandscapeMode.start();
+                loadScript('mobile-layer/divination-mirror.js', function () {
+                    loadScript('mobile-layer/mobile-root.js', function () {
+                        if (window.VNMobileRoot) window.VNMobileRoot.start();
+                    });
+                });
             });
         });
     }
