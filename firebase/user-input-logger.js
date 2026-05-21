@@ -71,6 +71,18 @@
         }
     }
 
+    function getRecordCategory(eventType) {
+        var et = eventType || "";
+        if (et === "divination_card" || et === "divination_result") return "cards";
+        if (et === "color_saved" || et === "color_q1_confirm") return "colors";
+        if (et === "lovesign_prayer") return "lovesign";
+        if (et === "heartrate_profiles" || et === "heartrate_deliver") return "heartrate";
+        if (et === "venus_wish") return "wishes";
+        if (et === "memory_fragment_upload") return "uploads";
+        if (et === "page_view" || et === "session_start") return "nav";
+        return "other";
+    }
+
     function logUserInput(eventType, payload) {
         try {
             if (!ready) initFirebase();
@@ -83,6 +95,7 @@
                 anonId: getAnonId(),
                 page: getCurrentPageLabel(),
                 platform: getPlatform(),
+                category: getRecordCategory(eventType),
                 eventType: eventType || "unknown",
                 payload: payload || {},
                 userAgent: (navigator.userAgent || "").slice(0, 240),

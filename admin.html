@@ -1,0 +1,236 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鍥犵紭璁板綍娈?路 鍚庡彴</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Noto+Serif+SC:wght@300;400;600&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --venus-red: #B3243C;
+            --venus-deep: #540D1A;
+            --venus-cream: #FCFAF2;
+            --venus-gold: #C3A25A;
+            --venus-ink: #2B1A1D;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            min-height: 100vh;
+            font-family: "Noto Serif SC", serif;
+            background: radial-gradient(ellipse at 50% 0%, #fdf3f0 0%, var(--venus-cream) 45%, #f0e8e0 100%);
+            color: var(--venus-ink);
+            overflow-x: hidden;
+        }
+        #particles {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 3px; height: 3px;
+            background: rgba(179, 36, 60, 0.35);
+            border-radius: 50%;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 0.8; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+        .wrap {
+            position: relative; z-index: 1;
+            max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem 4rem;
+        }
+        header {
+            text-align: center; margin-bottom: 2rem;
+            border-bottom: 1px solid rgba(195, 162, 90, 0.35);
+            padding-bottom: 1.5rem;
+        }
+        header h1 {
+            font-family: Cinzel, serif;
+            font-size: 1.35rem;
+            letter-spacing: 0.35em;
+            color: var(--venus-deep);
+            font-weight: 600;
+        }
+        header p {
+            margin-top: 0.75rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            color: rgba(84, 13, 26, 0.55);
+            font-style: italic;
+            font-family: "Playfair Display", serif;
+        }
+        .toolbar {
+            display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+            justify-content: space-between; margin-bottom: 1.25rem;
+        }
+        .toolbar .meta { font-size: 0.7rem; letter-spacing: 0.15em; color: rgba(43, 26, 29, 0.6); }
+        .toolbar-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .btn {
+            font-family: Cinzel, serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            padding: 0.5rem 1.25rem;
+            border: 1px solid rgba(179, 36, 60, 0.45);
+            background: rgba(252, 250, 242, 0.85);
+            color: var(--venus-red);
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .btn:hover { background: var(--venus-red); color: #fff; }
+        .gate {
+            max-width: 380px; margin: 3rem auto; text-align: center;
+            padding: 2rem; border: 1px solid rgba(195, 162, 90, 0.4);
+            border-radius: 1rem; background: rgba(252, 250, 242, 0.92);
+            box-shadow: 0 12px 40px rgba(84, 13, 26, 0.08);
+        }
+        .gate input {
+            width: 100%; margin: 0.65rem 0;
+            padding: 0.6rem 0.75rem;
+            border: 1px dashed rgba(139, 26, 26, 0.3);
+            background: transparent;
+            font-family: inherit; font-size: 0.85rem;
+            text-align: center; letter-spacing: 0.08em;
+        }
+        .gate-err { color: #c0392b; font-size: 0.72rem; min-height: 1.2em; margin-top: 0.5rem; }
+        .status {
+            text-align: center; padding: 2rem;
+            font-size: 0.8rem; letter-spacing: 0.15em;
+            color: rgba(84, 13, 26, 0.5);
+        }
+        .list { display: flex; flex-direction: column; gap: 1rem; }
+        .card {
+            background: rgba(252, 250, 242, 0.92);
+            border: 1px solid rgba(195, 162, 90, 0.35);
+            border-radius: 0.75rem;
+            padding: 1rem 1.15rem;
+            box-shadow: 0 4px 20px rgba(84, 13, 26, 0.06);
+        }
+        .card-head {
+            display: flex; flex-wrap: wrap; gap: 0.5rem 1rem;
+            align-items: baseline; margin-bottom: 0.65rem;
+            font-size: 0.68rem; letter-spacing: 0.12em;
+        }
+        .card-head .time { color: var(--venus-red); font-weight: 600; }
+        .card-head .tag {
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            background: rgba(179, 36, 60, 0.08);
+            color: var(--venus-deep);
+        }
+        .card .anon { font-size: 0.65rem; color: rgba(43, 26, 29, 0.55); word-break: break-all; }
+        .card .payload {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: rgba(245, 239, 235, 0.8);
+            border-radius: 0.5rem;
+            font-size: 0.72rem;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: "Courier New", monospace;
+            color: #3d2a2e;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+        .card .payload-rich {
+            font-family: "Noto Serif SC", serif;
+            white-space: normal;
+            max-height: none;
+        }
+        .section-hint {
+            font-size: 0.68rem;
+            letter-spacing: 0.1em;
+            color: rgba(84, 13, 26, 0.45);
+            margin: -0.35rem 0 0.65rem;
+        }
+        .err { color: #c0392b; text-align: center; padding: 1rem; font-size: 0.8rem; }
+        .hidden { display: none !important; }
+        .section-title {
+            font-family: Cinzel, serif;
+            font-size: 0.85rem;
+            letter-spacing: 0.28em;
+            color: var(--venus-deep);
+            margin: 2rem 0 0.75rem;
+            padding-top: 1.5rem;
+            border-top: 1px dashed rgba(195, 162, 90, 0.45);
+        }
+        .thumb { max-width: 140px; max-height: 140px; border-radius: 6px; margin-top: 0.5rem; }
+        .swatch {
+            display: inline-block;
+            width: 28px; height: 28px;
+            border-radius: 4px;
+            border: 1px solid rgba(0,0,0,0.15);
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div id="particles"></div>
+    <div class="wrap">
+        <header>
+            <h1>鍥犵紭璁板綍娈?/h1>
+            <p>浠呯鐞嗗憳鍙槄 路 璁胯€呮暟鎹彈 Firebase 瑙勫垯淇濇姢</p>
+        </header>
+
+        <div id="gate" class="gate">
+            <p id="gate-hint" style="font-size:0.75rem;letter-spacing:0.15em;color:var(--venus-deep);">绠＄悊鍛樼櫥褰?/p>
+            <input type="email" id="gate-email" placeholder="绠＄悊鍛橀偖绠? autocomplete="username">
+            <input type="password" id="gate-pass" placeholder="瀵嗙爜" autocomplete="current-password">
+            <button type="button" class="btn" id="gate-btn">鐧诲綍璁板綍娈?/button>
+            <p id="gate-err" class="gate-err"></p>
+        </div>
+
+        <div id="main-panel" class="hidden">
+            <div class="toolbar">
+                <span class="meta"><span id="admin-who"></span> 路 <span id="stats">鈥?/span></span>
+                <div class="toolbar-actions">
+                    <button type="button" class="btn" id="refresh-btn">鍒锋柊</button>
+                    <button type="button" class="btn" id="logout-btn">閫€鍑?/button>
+                </div>
+            </div>
+            <div id="status" class="status"></div>
+
+            <h2 class="section-title">鍗犲崪鍗＄墝</h2>
+            <p class="section-hint">浠呮娊鐗?/ 缈婚潰缁撴灉锛屼笉鍚叾瀹冪幆鑺?/p>
+            <div id="list-cards" class="list"></div>
+
+            <h2 class="section-title">璋冭壊璁板綍</h2>
+            <p class="section-hint">鑹插僵闂嵎涓?hex 璋冭壊</p>
+            <div id="list-colors" class="list"></div>
+
+            <h2 class="section-title">鎭嬬 路 蹇冩効浣庤</h2>
+            <div id="list-lovesign" class="list"></div>
+
+            <h2 class="section-title">蹇冭烦鍏辨尟</h2>
+            <p class="section-hint">鍙屾柟鍧愭爣濉姤涓庨€掍氦</p>
+            <div id="list-heartrate" class="list"></div>
+
+            <h2 class="section-title">缁寸撼鏂?路 淇＄蹇冩効</h2>
+            <div id="list-wishes" class="list"></div>
+
+            <h2 class="section-title">璁板繂纰庣墖 路 鍥剧墖锛圫torage锛?/h2>
+            <div id="list-uploads" class="list"></div>
+            <h2 class="section-title">璁板繂纰庣墖 路 涓婁紶鍏冩暟鎹?/h2>
+            <div id="list-upload-meta" class="list"></div>
+
+            <h2 class="section-title">娴忚杞ㄨ抗</h2>
+            <p class="section-hint">椤甸潰鍒囨崲鏃ュ織锛岄潪鐢ㄦ埛濉啓鍐呭</p>
+            <div id="list-nav" class="list"></div>
+
+            <h2 class="section-title">鍏跺畠</h2>
+            <div id="list-other" class="list"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js"></script>
+    <script src="firebase/firebase-config.js"></script>
+    <script src="firebase/admin-panel.js"></script>
+</body>
+</html>
+
