@@ -85,6 +85,7 @@
     function onUserGesturePrime() {
         armMeditationCameraWindow();
         mountPreviewForMeditation();
+        if (global.VNMobileMeditationFace) global.VNMobileMeditationFace.resetState();
         if (global.VNCameraGuard) {
             global.VNCameraGuard.primeMeditationStream();
         }
@@ -135,6 +136,7 @@
         var obs = new MutationObserver(function () {
             if (page.classList.contains('active')) {
                 global.__vnMeditationWantsCamera = true;
+                if (global.VNMobileMeditationFace) global.VNMobileMeditationFace.resetState();
                 if (global.VNCameraGuard) {
                     global.VNCameraGuard.setMeditationCamera(true);
                 }
@@ -146,6 +148,7 @@
                 if (global.VNCameraGuard) {
                     global.VNCameraGuard.setMeditationCamera(false);
                 }
+                if (global.VNMobileMeditationFace) global.VNMobileMeditationFace.resetState();
                 restorePreviewHome();
             }
         });

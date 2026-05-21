@@ -15,6 +15,7 @@
     function bootApp() {
         document.documentElement.classList.add('vn-mobile-active');
 
+        loadScript('mobile-layer/meditation-face.js', function () {
         loadScript('mobile-layer/scene-cleanup.js', function () {
             if (window.VNSceneCleanup) window.VNSceneCleanup.start();
             loadScript('mobile-layer/vn-shortcut.js', function () {
@@ -34,6 +35,7 @@
                     });
                 });
             });
+        });
         });
     }
 

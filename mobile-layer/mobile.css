@@ -64,7 +64,6 @@
         width: 100% !important;
         height: 100% !important;
         object-fit: cover !important;
-        transform: scaleX(-1);
     }
 
     html.vn-mobile-active #page-meditation.active ~ #face-status-indicator,

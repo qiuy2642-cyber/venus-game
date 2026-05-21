@@ -1,5 +1,5 @@
 /**
- * Mobile: block Hands; meditation uses dedicated FaceMesh frame loop + real camera.
+ * Mobile: block Hands; camera + FaceMesh loop (meditation-face.js handles闭眼).
  */
 (function (global) {
     'use strict';
@@ -157,8 +157,12 @@
             return;
         }
 
-        if (video && typeof faceMesh.send === 'function' && videoReady(video)) {
-            faceMesh.send({ image: video }).catch(function () { /* frame drop */ });
+        if (video && videoReady(video)) {
+            if (global.VNMobileMeditationFace && global.VNMobileMeditationFace.sendFrame) {
+                global.VNMobileMeditationFace.sendFrame(video, faceMesh);
+            } else if (typeof faceMesh.send === 'function') {
+                faceMesh.send({ image: video }).catch(function () { /* drop */ });
+            }
         }
 
         faceLoopRaf = requestAnimationFrame(meditationFaceLoop);
@@ -173,6 +177,12 @@
     function ensureMeditationVision() {
         if (!shouldAllowCamera()) return Promise.resolve();
 
+        if (global.VNMobileMeditationFace) {
+            global.VNMobileMeditationFace.installFaceMesh();
+            global.VNMobileMeditationFace.rebindExistingInstance(global.__vnFaceMeshInstance);
+            global.VNMobileMeditationFace.resetState();
+        }
+
         return attachMeditationStream()
             .then(function () {
                 startMeditationFaceLoop();
@@ -185,33 +195,13 @@
             });
     }
 
-    /** Call inside touchstart/click user gesture (iOS) */
     function primeMeditationStream() {
         if (!shouldAllowCamera()) return Promise.resolve();
-        return attachMeditationStream().catch(function () { /* retry later */ });
-    }
-
-    function installFaceMesh() {
-        if (global.__vnFaceMeshWrapped || typeof global.FaceMesh === 'undefined') return false;
-        var Real = global.FaceMesh;
-
-        if (Real.prototype && typeof Real.prototype.send === 'function' && !Real.prototype.__vnSendHooked) {
-            var protoSend = Real.prototype.send;
-            Real.prototype.send = function () {
-                global.__vnFaceMeshInstance = this;
-                return protoSend.apply(this, arguments);
-            };
-            Real.prototype.__vnSendHooked = true;
+        if (global.VNMobileMeditationFace) {
+            global.VNMobileMeditationFace.installFaceMesh();
+            global.VNMobileMeditationFace.resetState();
         }
-
-        global.FaceMesh = function (config) {
-            var inst = new Real(config);
-            global.__vnFaceMeshInstance = inst;
-            return inst;
-        };
-        global.FaceMesh.prototype = Real.prototype;
-        global.__vnFaceMeshWrapped = true;
-        return true;
+        return attachMeditationStream().catch(function () { /* retry later */ });
     }
 
     function installHands() {
@@ -264,8 +254,15 @@
         return true;
     }
 
+    function installFaceMeshDelegate() {
+        if (global.VNMobileMeditationFace && global.VNMobileMeditationFace.installFaceMesh) {
+            return global.VNMobileMeditationFace.installFaceMesh();
+        }
+        return typeof global.FaceMesh !== 'undefined';
+    }
+
     function pollMediapipe() {
-        installFaceMesh();
+        installFaceMeshDelegate();
         installHands();
         installCamera();
         if (!global.__vnFaceMeshWrapped || !global.__vnMobileHandsWrapped || !global.__vnMobileCameraWrapped) {
