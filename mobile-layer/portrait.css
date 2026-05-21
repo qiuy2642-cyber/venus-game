@@ -1,0 +1,20 @@
+/**
+ * Portrait-first tuning (no landscape lock / no rotate gate).
+ */
+@media (pointer: coarse) and (orientation: portrait) {
+    #vn-mobile-root .vn-m-card-row {
+        max-height: 48vh;
+    }
+
+    #vn-mobile-root .vn-m-stage {
+        padding-top: 4px;
+        padding-bottom: 8px;
+    }
+}
+
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 500px) {
+    /* Small landscape phones: still use portrait metrics, slightly shorter stage */
+    #vn-mobile-root .vn-m-card-row {
+        max-height: 70vh;
+    }
+}

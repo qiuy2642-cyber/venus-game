@@ -1,5 +1,5 @@
 /**
- * Mobile layer entry — coarse pointer only.
+ * Mobile layer entry — coarse pointer, portrait-first.
  */
 (function () {
     'use strict';
@@ -18,12 +18,9 @@
         document.documentElement.classList.add('vn-mobile-active');
 
         loadScript('mobile-layer/camera-guard.js', function () {
-            loadScript('mobile-layer/landscape-mode.js', function () {
-                if (window.VNLandscapeMode) window.VNLandscapeMode.start();
-                loadScript('mobile-layer/divination-mirror.js', function () {
-                    loadScript('mobile-layer/mobile-root.js', function () {
-                        if (window.VNMobileRoot) window.VNMobileRoot.start();
-                    });
+            loadScript('mobile-layer/divination-mirror.js', function () {
+                loadScript('mobile-layer/mobile-root.js', function () {
+                    if (window.VNMobileRoot) window.VNMobileRoot.start();
                 });
             });
         });
