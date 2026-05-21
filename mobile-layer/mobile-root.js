@@ -1,5 +1,5 @@
 /**
- * Isolated mobile mount point — portrait-first full viewport shell.
+ * Transparent touch layer + divination stage observer.
  */
 (function (global) {
     'use strict';
@@ -11,27 +11,15 @@
         if (root && root.isConnected) return root;
         root = document.createElement('div');
         root.id = 'vn-mobile-root';
-        root.setAttribute('aria-live', 'polite');
+        root.setAttribute('aria-hidden', 'true');
         root.hidden = true;
         document.body.appendChild(root);
         return root;
     }
 
-    function showRoot() {
-        ensureRoot();
-        root.hidden = false;
-    }
-
     function notifyStage(visible) {
-        if (visible) {
-            showRoot();
-            if (global.VNCameraGuard) global.VNCameraGuard.onDivinationOpen();
-        } else {
-            if (global.VNCameraGuard) global.VNCameraGuard.onDivinationClose();
-            if (root) root.hidden = true;
-        }
-        if (global.VNDivinationMirror && typeof global.VNDivinationMirror.onStageChange === 'function') {
-            global.VNDivinationMirror.onStageChange(visible);
+        if (global.VNDivinationTouch && typeof global.VNDivinationTouch.onStageChange === 'function') {
+            global.VNDivinationTouch.onStageChange(visible);
         }
     }
 
@@ -48,33 +36,28 @@
     }
 
     function onVisibilityChange() {
-        if (document.hidden) {
-            if (global.VNDivinationMirror && global.VNDivinationMirror.pause) {
-                global.VNDivinationMirror.pause();
-            }
-        } else if (global.VNDivinationMirror && global.VNDivinationMirror.resume) {
-            global.VNDivinationMirror.resume();
-        }
-    }
-
-    function emit(detail) {
-        if (!root) return;
-        root.dispatchEvent(new CustomEvent('vn-mobile-output', { bubbles: false, detail: detail }));
-        if (detail && detail.type === 'toast' && typeof global.showToast === 'function') {
-            global.showToast(detail.message);
-        }
+        if (!global.VNDivinationTouch) return;
+        if (document.hidden && global.VNDivinationTouch.pause) global.VNDivinationTouch.pause();
+        else if (global.VNDivinationTouch.resume) global.VNDivinationTouch.resume();
     }
 
     global.VNMobileRoot = {
         get: ensureRoot,
+        showTouchLayer: function () {
+            var r = ensureRoot();
+            r.hidden = false;
+            r.classList.add('vn-m-touch-active');
+        },
+        hideTouchLayer: function () {
+            if (root) {
+                root.hidden = true;
+                root.classList.remove('vn-m-touch-active');
+            }
+        },
         start: function () {
             ensureRoot();
             startStageWatch();
             document.addEventListener('visibilitychange', onVisibilityChange);
-        },
-        emit: emit,
-        hide: function () {
-            if (root) root.hidden = true;
         }
     };
 })(typeof window !== 'undefined' ? window : global);
