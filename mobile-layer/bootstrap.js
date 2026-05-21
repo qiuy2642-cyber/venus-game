@@ -19,11 +19,17 @@
             if (window.VNSceneCleanup) window.VNSceneCleanup.start();
             loadScript('mobile-layer/vn-shortcut.js', function () {
                 if (window.VNVnShortcut) window.VNVnShortcut.start();
-                loadScript('mobile-layer/meditation-fallback.js', function () {
-                    if (window.VNMeditationFallback) window.VNMeditationFallback.start();
+                loadScript('mobile-layer/meditation-camera.js', function () {
+                    if (window.VNMeditationCamera) window.VNMeditationCamera.start();
                     loadScript('mobile-layer/divination-touch.js', function () {
                         loadScript('mobile-layer/mobile-root.js', function () {
                             if (window.VNMobileRoot) window.VNMobileRoot.start();
+                            loadScript('mobile-layer/lovesign-touch.js', function () {
+                                if (window.VNLovesignTouch) window.VNLovesignTouch.start();
+                                loadScript('mobile-layer/lovesign-viewport.js', function () {
+                                    if (window.VNLovesignViewport) window.VNLovesignViewport.start();
+                                });
+                            });
                         });
                     });
                 });

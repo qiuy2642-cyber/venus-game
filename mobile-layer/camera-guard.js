@@ -50,9 +50,7 @@
         var orig = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
         navigator.mediaDevices.getUserMedia = function (constraints) {
             if (shouldAllowCamera()) {
-                return orig(constraints).catch(function () {
-                    return fakeVideoStream();
-                });
+                return orig(constraints);
             }
             return fakeVideoStream();
         };

@@ -55,8 +55,13 @@
     }
 
     function resetBodySceneClasses() {
-        document.body.classList.remove('lovesign-active', 'heartrate-active');
         var activePage = document.querySelector('.page.active');
+        if (!activePage || activePage.id !== 'page-lovesign') {
+            document.body.classList.remove('lovesign-active');
+        }
+        if (!activePage || activePage.id !== 'page-heartrate') {
+            document.body.classList.remove('heartrate-active');
+        }
         if (activePage && activePage.id === 'page3') {
             document.body.style.backgroundColor = '';
             var overlay = document.querySelector('.bg-overlay');
@@ -68,6 +73,19 @@
         resetViewport();
         resetDivinationArtifacts();
         resetBodySceneClasses();
+        var activePage = document.querySelector('.page.active');
+        if (activePage && activePage.id === 'page-lovesign' && global.VNMobileRoot) {
+            global.VNMobileRoot.hideTouchLayer();
+        }
+        if (activePage && activePage.id === 'page-lovesign') {
+            global.setTimeout(function () {
+                if (global.VNLovesignViewport && global.VNLovesignViewport.relayout) {
+                    global.VNLovesignViewport.relayout();
+                } else {
+                    global.dispatchEvent(new Event('resize'));
+                }
+            }, 120);
+        }
     }
 
     function startWatch() {

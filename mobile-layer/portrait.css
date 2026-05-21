@@ -8,14 +8,9 @@
     }
 }
 
-@media (pointer: coarse) {
-    #page-meditation .vn-m-fallback-hint {
-        font-size: 0.65rem;
-        letter-spacing: 0.12em;
-        color: #e0c9a6;
-        opacity: 0.85;
-        text-align: center;
-        margin-top: 12px;
-        padding: 0 16px;
+@media (pointer: coarse) and (orientation: portrait) {
+    html.vn-mobile-active #page-lovesign #canvas-container {
+        height: min(58vh, 440px);
+        top: max(4px, env(safe-area-inset-top, 0));
     }
 }
