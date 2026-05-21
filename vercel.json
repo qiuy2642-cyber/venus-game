@@ -14,7 +14,19 @@
       ]
     },
     {
-      "source": "/(favicon.ico|favicon.png|icon-192.png|icon-512.png|assets/(favicon.png|favicon-32.png|apple-touch-icon.png|pwa/.*))",
+      "source": "/favicon.ico",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/icon-:size(192|512).png",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/assets/pwa/:file*",
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
