@@ -57,6 +57,19 @@
 
     html.vn-mobile-active #cam-preview.vn-meditation-cam-mount {
         display: block !important;
+        visibility: visible !important;
+    }
+
+    html.vn-mobile-active #cam-preview.vn-meditation-cam-mount #input-video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+        transform: scaleX(-1);
+    }
+
+    html.vn-mobile-active #page-meditation.active ~ #face-status-indicator,
+    html.vn-mobile-active body:has(#page-meditation.active) #face-status-indicator {
+        z-index: 220;
     }
 
     html.vn-mobile-active #divination-stage .divine-ui {
