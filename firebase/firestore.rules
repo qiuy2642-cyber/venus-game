@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == "qiuy2642@gmail.com";
+    }
+
+    function validUserInputCreate() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['anonId', 'page', 'eventType', 'payload', 'createdAt'])
+        && d.anonId is string && d.anonId.size() > 0 && d.anonId.size() < 80
+        && d.page is string && d.page.size() < 64
+        && d.eventType is string && d.eventType.size() < 64
+        && d.payload is map && d.payload.size() < 40;
+    }
+
+    match /user_inputs/{docId} {
+      allow create: if validUserInputCreate();
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /user_uploads/{docId} {
+      allow create: if request.resource.data.url is string
+        && request.resource.data.url.size() > 0
+        && request.resource.data.url.size() < 512;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /user_cards/{docId} {
+      allow create: if request.resource.data.cardName is string
+        && request.resource.data.cardName.size() > 0
+        && request.resource.data.cardName.size() < 80;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    match /user_colors/{docId} {
+      allow create: if request.resource.data.color is string
+        && request.resource.data.color.size() > 0
+        && request.resource.data.color.size() < 32;
+      allow read: if isAdmin();
+      allow update, delete: if false;
+    }
+  }
+}

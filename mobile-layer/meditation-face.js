@@ -106,6 +106,7 @@
             if (typeof global.showToast === 'function') {
                 global.showToast('✦ 冥想完成 ✦');
             }
+            if (global.VNAnalytics) global.VNAnalytics.log('meditation_complete', { method: 'mobile_face' });
         }, 2500);
     }
 

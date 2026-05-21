@@ -188,11 +188,9 @@
 
 
     function triggerWash() {
-
+        if (global.VNAnalytics) global.VNAnalytics.log('lovesign_wash', { gesture: 'circle' });
         var btn = document.getElementById('manual-wash-btn');
-
         if (btn) btn.click();
-
     }
 
 
