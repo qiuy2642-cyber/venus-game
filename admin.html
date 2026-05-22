@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鍥犵紭璁板綍娈?路 鍚庡彴</title>
+    <title>因缘记录殿 · 后台</title>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Noto+Serif+SC:wght@300;400;600&family=Playfair+Display:ital@0;1&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -172,56 +172,56 @@
     <div id="particles"></div>
     <div class="wrap">
         <header>
-            <h1>鍥犵紭璁板綍娈?/h1>
-            <p>浠呯鐞嗗憳鍙槄 路 璁胯€呮暟鎹彈 Firebase 瑙勫垯淇濇姢</p>
+            <h1>因缘记录殿</h1>
+            <p>仅管理员可阅 · 访者数据受 Firebase 规则保护</p>
         </header>
 
         <div id="gate" class="gate">
-            <p id="gate-hint" style="font-size:0.75rem;letter-spacing:0.15em;color:var(--venus-deep);">绠＄悊鍛樼櫥褰?/p>
-            <input type="email" id="gate-email" placeholder="绠＄悊鍛橀偖绠? autocomplete="username">
-            <input type="password" id="gate-pass" placeholder="瀵嗙爜" autocomplete="current-password">
-            <button type="button" class="btn" id="gate-btn">鐧诲綍璁板綍娈?/button>
+            <p id="gate-hint" style="font-size:0.75rem;letter-spacing:0.15em;color:var(--venus-deep);">管理员登录</p>
+            <input type="email" id="gate-email" placeholder="管理员邮箱" autocomplete="username">
+            <input type="password" id="gate-pass" placeholder="密码" autocomplete="current-password">
+            <button type="button" class="btn" id="gate-btn">登录记录殿</button>
             <p id="gate-err" class="gate-err"></p>
         </div>
 
         <div id="main-panel" class="hidden">
             <div class="toolbar">
-                <span class="meta"><span id="admin-who"></span> 路 <span id="stats">鈥?/span></span>
+                <span class="meta"><span id="admin-who"></span> · <span id="stats">—</span></span>
                 <div class="toolbar-actions">
-                    <button type="button" class="btn" id="refresh-btn">鍒锋柊</button>
-                    <button type="button" class="btn" id="logout-btn">閫€鍑?/button>
+                    <button type="button" class="btn" id="refresh-btn">刷新</button>
+                    <button type="button" class="btn" id="logout-btn">退出</button>
                 </div>
             </div>
             <div id="status" class="status"></div>
 
-            <h2 class="section-title">鍗犲崪鍗＄墝</h2>
-            <p class="section-hint">浠呮娊鐗?/ 缈婚潰缁撴灉锛屼笉鍚叾瀹冪幆鑺?/p>
+            <h2 class="section-title">占卜卡牌</h2>
+            <p class="section-hint">仅抽牌 / 翻面结果，不含其它环节</p>
             <div id="list-cards" class="list"></div>
 
-            <h2 class="section-title">璋冭壊璁板綍</h2>
-            <p class="section-hint">鑹插僵闂嵎涓?hex 璋冭壊</p>
+            <h2 class="section-title">调色记录</h2>
+            <p class="section-hint">色彩问卷与 hex 调色</p>
             <div id="list-colors" class="list"></div>
 
-            <h2 class="section-title">鎭嬬 路 蹇冩効浣庤</h2>
+            <h2 class="section-title">恋签 · 心愿低语</h2>
             <div id="list-lovesign" class="list"></div>
 
-            <h2 class="section-title">蹇冭烦鍏辨尟</h2>
-            <p class="section-hint">鍙屾柟鍧愭爣濉姤涓庨€掍氦</p>
+            <h2 class="section-title">心跳共振</h2>
+            <p class="section-hint">双方坐标填报与递交</p>
             <div id="list-heartrate" class="list"></div>
 
-            <h2 class="section-title">缁寸撼鏂?路 淇＄蹇冩効</h2>
+            <h2 class="section-title">维纳斯 · 信笺心愿</h2>
             <div id="list-wishes" class="list"></div>
 
-            <h2 class="section-title">璁板繂纰庣墖 路 鍥剧墖锛圫torage锛?/h2>
+            <h2 class="section-title">记忆碎片 · 图片（Storage）</h2>
             <div id="list-uploads" class="list"></div>
-            <h2 class="section-title">璁板繂纰庣墖 路 涓婁紶鍏冩暟鎹?/h2>
+            <h2 class="section-title">记忆碎片 · 上传元数据</h2>
             <div id="list-upload-meta" class="list"></div>
 
-            <h2 class="section-title">娴忚杞ㄨ抗</h2>
-            <p class="section-hint">椤甸潰鍒囨崲鏃ュ織锛岄潪鐢ㄦ埛濉啓鍐呭</p>
+            <h2 class="section-title">浏览轨迹</h2>
+            <p class="section-hint">页面切换日志，非用户填写内容</p>
             <div id="list-nav" class="list"></div>
 
-            <h2 class="section-title">鍏跺畠</h2>
+            <h2 class="section-title">其它</h2>
             <div id="list-other" class="list"></div>
         </div>
     </div>
@@ -233,4 +233,3 @@
     <script src="admin-panel.js"></script>
 </body>
 </html>
-
