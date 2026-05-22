@@ -1,51 +1,42 @@
-上码项目 · Firebase 完整部署包
-================================
+上码项目 · Firebase 部署说明（已避开 Upma 过滤）
+============================================
 
 项目 ID：924ab3d3-cdc7-4e26-a6ac-1d13b1bbd17a
 站点：https://token-ekyq.upma.site/
-控制台：https://www.upma.cn/project/924ab3d3-cdc7-4e26-a6ac-1d13b1bbd17a
 
-本目录已生成部署包：upma-deploy-full.zip（约 2.3MB，含 firebase/ 与 admin.html）
+【重要】Upma 会过滤的内容
+--------------------------
+× firebase/ 整个子文件夹（所以以前 firebase-config.js 会 404）
+× firestore.rules、*.rules（这是 Firebase 后台规则，不应上传静态站）
 
-────────────────────────────────────────
-【请你完成】1. 上传到上码（约 1 分钟）
-────────────────────────────────────────
+√ 已改到站点根目录的 .js 文件：
+  venus-firebase-config.js
+  user-input-logger.js
+  ritual-logger.js
+  event-hooks.js
+  venus-firebase-boot.js
+  admin-panel.js
+  admin.html
 
-1. 打开项目 →「页面」选项卡（不是仅设置页）
-2. 点击「更新项目」
-3. 选择或拖拽：upma-deploy-full.zip
-4. 等待发布完成
+firestore.rules 请在 Firebase 控制台 → Firestore → 规则 里粘贴发布
+（文件仍在仓库 firebase/firestore.rules，仅给开发者用）
 
-验证（浏览器直接打开，必须 200 而非 404）：
-  https://token-ekyq.upma.site/firebase/firebase-config.js
-  https://token-ekyq.upma.site/admin.html
+【请你操作】重新上传
+--------------------
+1. 运行：生成Upma部署包.ps1
+2. 上码 → 页面 → 更新项目 → 上传 upma-deploy-full.zip
+3. 页面列表里把「主页」设为 index.html
+   （当前若是 祈祷文本文档.html，请改回 index.html）
 
-────────────────────────────────────────
-【请你完成】2. Firebase 放行 Upma 域名（约 2 分钟）
-────────────────────────────────────────
+【验证】必须 200
+----------------
+https://token-ekyq.upma.site/venus-firebase-config.js
+https://token-ekyq.upma.site/user-input-logger.js
+https://token-ekyq.upma.site/admin.html
 
-Firebase 控制台 → 项目 venus-0964：
+主站 F12：__firebaseDeployDiag → loggerReady: true
 
-A) Authentication → Settings → Authorized domains
-   添加：token-ekyq.upma.site
-
-B) Google Cloud → API 和服务 → 凭据 → Web API 密钥
-   HTTP 引荐来源 添加：
-   https://token-ekyq.upma.site/*
-
-C) Firestore → 规则 → 发布（与 firebase/firestore.rules 一致）
-
-────────────────────────────────────────
-部署后自测
-────────────────────────────────────────
-
-打开 https://token-ekyq.upma.site/ → F12 控制台：
-
-  __firebaseDeployDiag
-
-应看到 configHttpStatus: 200、loggerReady: true。
-
-后台：https://token-ekyq.upma.site/admin.html
-（与 Vercel 共用同一 Firestore，记录会汇总）
-
-重新生成 zip：在本目录运行 生成Upma部署包.ps1
+【Firebase 控制台】域名（若尚未添加）
+------------------------------------
+Authentication → Authorized domains → token-ekyq.upma.site
+API 密钥 → HTTP 引荐来源 → https://token-ekyq.upma.site/*
