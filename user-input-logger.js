@@ -103,11 +103,16 @@
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
 
-            return db.collection(COLLECTION).add(doc).catch(function (err) {
+            return db.collection(COLLECTION).add(doc).then(function () {
+                console.log("[记录系统] 已写入", eventType, location.host);
+            }).catch(function (err) {
                 var code = err && err.code ? err.code : "";
                 var msg = err && err.message ? err.message : String(err);
                 console.warn("[记录系统] 上传失败", location.host, code, msg);
-                window.__lastFirestoreWriteError = { host: location.host, code: code, message: msg };
+                window.__lastFirestoreWriteError = { host: location.host, code: code, message: msg, eventType: eventType };
+                if (code === "permission-denied") {
+                    console.warn("[记录系统] Firestore 拒绝写入：请检查规则是否已发布，或 API 密钥是否已添加", location.host);
+                }
             });
         } catch (e) {
             console.warn("[记录系统]", e);
