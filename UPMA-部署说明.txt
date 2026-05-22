@@ -1,42 +1,28 @@
-上码项目 · Firebase 部署说明（已避开 Upma 过滤）
-============================================
+上码 · 上传「已跳过」说明
+========================
 
-项目 ID：924ab3d3-cdc7-4e26-a6ac-1d13b1bbd17a
-站点：https://token-ekyq.upma.site/
+以下被跳过是正常的（仅本地开发用，线上不需要）：
+  · 启动本地服务器.bat
+  · 生成Upma部署包.ps1
+  · firestore.rules（在 Firebase 控制台发布，不上传静态站）
 
-【重要】Upma 会过滤的内容
---------------------------
-× firebase/ 整个子文件夹（所以以前 firebase-config.js 会 404）
-× firestore.rules、*.rules（这是 Firebase 后台规则，不应上传静态站）
+Upma 还会过滤：
+  · firebase/ 子文件夹
+  · 文件名里带 firebase 的 .js（如 venus-firebase-config.js）
 
-√ 已改到站点根目录的 .js 文件：
-  venus-firebase-config.js
+已改用根目录（请确认上传后能打开）：
+  venus-config.js          ← 配置（必测 200）
+  venus-record-boot.js     ← 自检
   user-input-logger.js
   ritual-logger.js
   event-hooks.js
-  venus-firebase-boot.js
   admin-panel.js
-  admin.html
 
-firestore.rules 请在 Firebase 控制台 → Firestore → 规则 里粘贴发布
-（文件仍在仓库 firebase/firestore.rules，仅给开发者用）
+重新打包：运行 生成Upma部署包.ps1 → 上码「更新项目」上传 zip
 
-【请你操作】重新上传
---------------------
-1. 运行：生成Upma部署包.ps1
-2. 上码 → 页面 → 更新项目 → 上传 upma-deploy-full.zip
-3. 页面列表里把「主页」设为 index.html
-   （当前若是 祈祷文本文档.html，请改回 index.html）
+验证：
+  https://token-ekyq.upma.site/venus-config.js
+  https://token-ekyq.upma.site/user-input-logger.js
+  主站 F12：__firebaseDeployDiag
 
-【验证】必须 200
-----------------
-https://token-ekyq.upma.site/venus-firebase-config.js
-https://token-ekyq.upma.site/user-input-logger.js
-https://token-ekyq.upma.site/admin.html
-
-主站 F12：__firebaseDeployDiag → loggerReady: true
-
-【Firebase 控制台】域名（若尚未添加）
-------------------------------------
-Authentication → Authorized domains → token-ekyq.upma.site
-API 密钥 → HTTP 引荐来源 → https://token-ekyq.upma.site/*
+主页请设为 index.html
