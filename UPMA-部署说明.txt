@@ -1,0 +1,51 @@
+上码项目 · Firebase 完整部署包
+================================
+
+项目 ID：924ab3d3-cdc7-4e26-a6ac-1d13b1bbd17a
+站点：https://token-ekyq.upma.site/
+控制台：https://www.upma.cn/project/924ab3d3-cdc7-4e26-a6ac-1d13b1bbd17a
+
+本目录已生成部署包：upma-deploy-full.zip（约 2.3MB，含 firebase/ 与 admin.html）
+
+────────────────────────────────────────
+【请你完成】1. 上传到上码（约 1 分钟）
+────────────────────────────────────────
+
+1. 打开项目 →「页面」选项卡（不是仅设置页）
+2. 点击「更新项目」
+3. 选择或拖拽：upma-deploy-full.zip
+4. 等待发布完成
+
+验证（浏览器直接打开，必须 200 而非 404）：
+  https://token-ekyq.upma.site/firebase/firebase-config.js
+  https://token-ekyq.upma.site/admin.html
+
+────────────────────────────────────────
+【请你完成】2. Firebase 放行 Upma 域名（约 2 分钟）
+────────────────────────────────────────
+
+Firebase 控制台 → 项目 venus-0964：
+
+A) Authentication → Settings → Authorized domains
+   添加：token-ekyq.upma.site
+
+B) Google Cloud → API 和服务 → 凭据 → Web API 密钥
+   HTTP 引荐来源 添加：
+   https://token-ekyq.upma.site/*
+
+C) Firestore → 规则 → 发布（与 firebase/firestore.rules 一致）
+
+────────────────────────────────────────
+部署后自测
+────────────────────────────────────────
+
+打开 https://token-ekyq.upma.site/ → F12 控制台：
+
+  __firebaseDeployDiag
+
+应看到 configHttpStatus: 200、loggerReady: true。
+
+后台：https://token-ekyq.upma.site/admin.html
+（与 Vercel 共用同一 Firestore，记录会汇总）
+
+重新生成 zip：在本目录运行 生成Upma部署包.ps1
