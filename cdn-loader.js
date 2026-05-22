@@ -135,4 +135,77 @@
             }
         };
     };
+    /** 旧版 HTML 仍引用 firebase/ 时，由此处拉起根目录记录脚本（Upma 可部署） */
+    (function bootVenusRecord() {
+        if (global.__vnRecordBootFromCdn) return;
+        global.__vnRecordBootFromCdn = true;
+
+        global.__firebaseDeployDiag = {
+            pending: true,
+            host: location.host,
+            loadedVia: 'cdn-loader.js'
+        };
+
+        var queue = [
+            'https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js',
+            'https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js',
+            'venus-config.js',
+            'user-input-logger.js',
+            'ritual-logger.js',
+            'event-hooks.js',
+            'venus-record-boot.js'
+        ];
+
+        function publishDiag() {
+            global.__firebaseDeployDiag = {
+                host: location.host,
+                loadedVia: 'cdn-loader.js',
+                configLoaded: !!(global.FIREBASE_CONFIG && global.FIREBASE_CONFIG.projectId),
+                sdkLoaded: typeof firebase !== 'undefined',
+                logUserInput: typeof global.logUserInput === 'function',
+                loggerReady: typeof global.isUserInputLoggerReady === 'function' && global.isUserInputLoggerReady()
+            };
+            if (global.__firebaseDeployDiag.loggerReady) {
+                console.log('[记录系统] 就绪', location.host);
+            } else {
+                console.warn('[记录系统] 未就绪', global.__firebaseDeployDiag);
+            }
+        }
+
+        function loadAt(i) {
+            if (i >= queue.length) {
+                publishDiag();
+                return;
+            }
+            var src = queue[i];
+            if (src.indexOf('gstatic') < 0) {
+                var hit = document.querySelector('script[src="' + src + '"]');
+                if (hit) {
+                    loadAt(i + 1);
+                    return;
+                }
+            } else if (typeof firebase !== 'undefined' && src.indexOf('firestore') >= 0) {
+                loadAt(i + 1);
+                return;
+            } else if (typeof firebase !== 'undefined' && src.indexOf('app-compat') >= 0) {
+                loadAt(i + 1);
+                return;
+            }
+            var s = document.createElement('script');
+            s.src = src;
+            s.async = false;
+            s.onload = function () { loadAt(i + 1); };
+            s.onerror = function () {
+                console.error('[记录系统] 脚本加载失败:', src);
+                loadAt(i + 1);
+            };
+            document.head.appendChild(s);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () { loadAt(0); });
+        } else {
+            loadAt(0);
+        }
+    })();
 })(window);
