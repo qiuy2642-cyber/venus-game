@@ -19,6 +19,7 @@ Upma 还会过滤：
   admin-panel.js
 
 重新打包：运行 生成Upma部署包.ps1 → 上码「更新项目」上传 zip
+（zip 内必须是 assets/xxx 正斜杠；勿用资源管理器「发送到压缩」会生成 assets\xxx 导致上码报错）
 
 验证：
   https://token-ekyq.upma.site/venus-config.js
